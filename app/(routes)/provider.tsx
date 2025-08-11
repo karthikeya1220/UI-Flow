@@ -13,22 +13,36 @@ function DashboardProvider({
     children: React.ReactNode;
 }>) {
 
-    const user = useAuthContext();
+    const { user, loading } = useAuthContext();
     const router = useRouter();
 
     useEffect(() => {
-        if (!user?.user && user.user) return router.replace('/')
-        user?.user && checkUser()
-
-    }, [user])
+        // Don't redirect while still loading auth state
+        if (loading) return;
+        
+        // If user context is loaded and user is not authenticated, redirect to home
+        if (!user) {
+            router.replace('/');
+            return;
+        }
+        
+        // If user is authenticated, check/create user in database
+        checkUser();
+    }, [user, loading, router])
 
 
     const checkUser = async () => {
-        const result = await axios.post('/api/user', {
-            userName: user?.user?.displayName,
-            userEmail: user?.user?.email
-        });
-        console.log(user);
+        if (!user) return;
+        
+        try {
+            const result = await axios.post('/api/user', {
+                userName: user.displayName,
+                userEmail: user.email
+            });
+            console.log('User check result:', result.data);
+        } catch (error) {
+            console.error('Error checking user:', error);
+        }
     }
 
 

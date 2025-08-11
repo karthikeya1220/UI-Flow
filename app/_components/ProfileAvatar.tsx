@@ -14,25 +14,34 @@ import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 
 function ProfileAvatar() {
-
-    const user = useAuthContext();
+    const { user } = useAuthContext();
     const router = useRouter();
+    
     const onButtonPress = () => {
         signOut(auth).then(() => {
             // Sign-out successful.
-            router.replace('/')
+            router.replace('/');
         }).catch((error) => {
-            // An error happened.
+            console.error('Sign out error:', error);
         });
     }
+    
     return (
         <div>
-            <Popover >
+            <Popover>
                 <PopoverTrigger>
-                    {user?.user?.photoURL && <img src={user?.user?.photoURL} alt='profile' className='w-[35px] h-[35px] rounded-full' />}
+                    {user?.photoURL && (
+                        <img 
+                            src={user.photoURL} 
+                            alt='profile' 
+                            className='w-[35px] h-[35px] rounded-full cursor-pointer hover:opacity-80 transition-opacity' 
+                        />
+                    )}
                 </PopoverTrigger>
                 <PopoverContent className='w-[100px] mx-w-sm'>
-                    <Button variant={'ghost'} onClick={onButtonPress} className=''>Logout</Button>
+                    <Button variant={'ghost'} onClick={onButtonPress} className='w-full'>
+                        Logout
+                    </Button>
                 </PopoverContent>
             </Popover>
         </div>

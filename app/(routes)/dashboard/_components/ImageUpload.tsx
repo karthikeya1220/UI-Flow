@@ -13,8 +13,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { getDownloadURL, ref, uploadBytes } from 'firebase/storage'
-import { storage } from '@/configs/firebaseConfig'
+import { uploadFileToSupabase } from '@/lib/supabase-storage'
 import axios from 'axios'
 import { uuid } from 'drizzle-orm/pg-core'
 import { useAuthContext } from '@/app/provider'
@@ -44,37 +43,92 @@ function ImageUpload() {
     const OnConverToCodeButtonClick = async () => {
         if (!file || !model || !description) {
             console.log("Select All Field");
+            toast.error('Please fill in all fields: image, model, and description');
+            return;
+        }
+        if (!user?.email) {
+            toast.error('Please log in to continue');
             return;
         }
         setLoading(true);
-        //Save Image to Firebase
-        const fileName = Date.now() + '.png';
-        const imageRef = ref(storage, "Wireframe_To_Code/" + fileName);
-        await uploadBytes(imageRef, file).then(resp => {
-            console.log("Image Uploaded...")
-        });
+        try {
+            // Convert image to base64 as fallback if Supabase Storage fails
+            const toBase64 = (file: File): Promise<string> => {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onload = () => resolve(reader.result as string);
+                    reader.onerror = error => reject(error);
+                });
+            };
 
-        const imageUrl = await getDownloadURL(imageRef);
-        console.log(imageUrl);
+            let imageUrl = '';
+            
+            try {
+                // Try Supabase Storage first
+                const fileName = Date.now() + '.png';
+                const uploadResult = await uploadFileToSupabase(file, fileName);
+                
+                if (uploadResult.error) {
+                    throw new Error(uploadResult.error);
+                }
+                
+                imageUrl = uploadResult.url || '';
+                console.log("Image uploaded to Supabase Storage:", imageUrl);
+            } catch (storageError) {
+                console.warn("Supabase Storage failed, using base64 fallback:", storageError);
+                // Fallback to base64 encoding
+                imageUrl = await toBase64(file);
+                toast.info('Using local image processing (Supabase Storage unavailable)');
+            }
 
-        const uid = uuid4();
-        console.log(uid);
-        // Save Info To Database
-        const result = await axios.post('/api/wireframe-to-code', {
-            uid: uid,
-            description: description,
-            imageUrl: imageUrl,
-            model: model,
-            email: user?.email
-        });
-        if (result.data?.error) {
-            console.log("Not Enough credits");
-            toast('Not Enough Credits!');
+            const uid = uuid4();
+            console.log(uid);
+            // Save Info To Database
+            const result = await axios.post('/api/wireframe-to-code', {
+                uid: uid,
+                description: description,
+                imageUrl: imageUrl,
+                model: model,
+                email: user?.email
+            });
+            
+            console.log('API Response:', result.data);
+            
+            if (result.data?.error) {
+                console.log("Not Enough credits");
+                toast.error('Not Enough Credits!');
+                setLoading(false);
+                return;
+            }
+            
+            if (result.data?.success) {
+                toast.success('Wireframe uploaded successfully! Redirecting...');
+                router.push('/view-code/' + uid);
+            } else {
+                toast.error('Failed to process wireframe. Please try again.');
+                setLoading(false);
+            }
+        } catch (error) {
+            console.error('Error uploading wireframe:', error);
+            
+            // Provide specific error messages
+            if (error instanceof Error) {
+                if (error.message.includes('storage')) {
+                    toast.error('Supabase Storage error. Please check your Supabase configuration.');
+                } else if (error.message.includes('auth')) {
+                    toast.error('Authentication error. Please sign in again.');
+                } else if (error.message.includes('network')) {
+                    toast.error('Network error. Please check your internet connection.');
+                } else {
+                    toast.error(`Upload failed: ${error.message}`);
+                }
+            } else {
+                toast.error('Failed to upload wireframe. Please try again.');
+            }
+            
             setLoading(false);
-            return;
         }
-        setLoading(false);
-        router.push('/view-code/' + uid);
     }
 
     return (
@@ -120,12 +174,16 @@ function ImageUpload() {
                         <SelectContent>
                             {Constants?.AiModelList.map((model, index) => (
                                 <SelectItem value={model.name} key={index} >
-                                    <div className='flex items-center gap-2'>
-                                        <Image src={model.icon} alt={model.name} width={25} height={25} />
-                                        <h2> {model.name}</h2>
-                                    </div>
-
-                                </SelectItem>
+                                <div className='flex items-center gap-2'>
+                                    <Image 
+                                        src={model.icon} 
+                                        alt={model.name} 
+                                        width={25} 
+                                        height={25}
+                                        className="w-auto h-auto"
+                                    />
+                                    <h2> {model.name}</h2>
+                                </div>                                </SelectItem>
 
                             ))}
 

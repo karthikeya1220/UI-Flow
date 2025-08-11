@@ -1,2 +1,8 @@
 import { drizzle } from 'drizzle-orm/neon-http';
-export const db = drizzle(process.env.NEXT_PUBLIC_NEON_DB_CONNECTION_STRING!);
+
+const connectionString = process.env.DATABASE_URL || process.env.NEXT_PUBLIC_NEON_DB_CONNECTION_STRING;
+if (!connectionString) {
+    throw new Error('Database connection string is not configured');
+}
+
+export const db = drizzle(connectionString);

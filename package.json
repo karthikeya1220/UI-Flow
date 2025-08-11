@@ -1,5 +1,6 @@
 {
-  "name": "nextjs-boilerplate-1",
+  "name": "ui-flow",
+  "description": "A Next.js application for building UI flows with Firebase and Supabase integration.",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -27,11 +28,11 @@
     "drizzle-orm": "^0.39.1",
     "firebase": "^11.2.0",
     "lucide-react": "^0.474.0",
-    "next": "15.1.6",
+    "next": "^15.4.6",
     "next-themes": "^0.4.4",
     "openai": "^4.83.0",
-    "react": "^18.0.0",
-    "react-dom": "^18.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "sonner": "^1.7.4",
     "tailwind-merge": "^3.0.1",
     "tailwindcss-animate": "^1.0.7",

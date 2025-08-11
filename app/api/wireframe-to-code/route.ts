@@ -24,9 +24,10 @@ export async function POST(req: NextRequest) {
             throw new AppError('User not found', 404);
         }
 
-        if (!creditResult[0]?.credits || creditResult[0]?.credits <= 0) {
-            throw new AppError('Insufficient credits. Please purchase more credits to continue.', 402);
-        }
+        // Temporarily disabled for development
+        // if (!creditResult[0]?.credits || creditResult[0]?.credits <= 0) {
+        //     throw new AppError('Insufficient credits. Please purchase more credits to continue.', 402);
+        // }
 
         // Insert wireframe record
         const result = await db.insert(WireframeToCodeTable).values({
@@ -37,9 +38,9 @@ export async function POST(req: NextRequest) {
             createdBy: email
         }).returning({ id: WireframeToCodeTable.id, uid: WireframeToCodeTable.uid });
 
-        // Update user credits
+        // Update user credits (temporarily disabled for development)
         await db.update(usersTable).set({
-            credits: creditResult[0]?.credits - 1
+            credits: Math.max(0, (creditResult[0]?.credits || 0) - 1)
         }).where(eq(usersTable.email, email));
 
         return NextResponse.json({

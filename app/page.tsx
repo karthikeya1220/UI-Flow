@@ -33,13 +33,13 @@ export default function Home() {
               <div className="flex items-center space-x-2">
                 <Image 
                   src={'/logo.svg'} 
-                  alt='Wireframe2Code logo' 
+                  alt='UI-Flow logo' 
                   width={40} 
                   height={40}
                   className='w-10 h-10' 
                 />
                 <h2 className='font-bold text-xl bg-gradient-to-r from-indigo-600 to-cyan-600 bg-clip-text text-transparent'>
-                  Wireframe2Code
+                  UI Flow
                 </h2>
               </div>
             </div>
@@ -181,7 +181,7 @@ export default function Home() {
                   <div className="w-3 h-3 bg-red-400 rounded-full"></div>
                   <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
                   <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                  <div className="ml-4 text-gray-400 text-sm font-medium">Wireframe2Code Demo</div>
+                  <div className="ml-4 text-gray-400 text-sm font-medium">UI Flow Demo</div>
                 </div>
               </div>
               <div className="p-8">
@@ -422,12 +422,12 @@ export default function Home() {
               <div className="flex items-center space-x-2 mb-4">
                 <Image 
                   src={'/logo.svg'} 
-                  alt='Wireframe2Code logo' 
+                  alt='UI-Flow logo' 
                   width={32} 
                   height={32}
                   className='w-8 h-8' 
                 />
-                <h3 className="text-xl font-bold">Wireframe2Code</h3>
+                <h3 className="text-xl font-bold">UI Flow</h3>
               </div>
               <p className="text-gray-400 mb-6">
                 Transform your wireframes into production-ready code with the power of AI.
@@ -486,7 +486,7 @@ export default function Home() {
           </div>
 
           <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 Wireframe2Code. All rights reserved. Built with ❤️ for developers worldwide.</p>
+            <p>&copy; 2024 UI Flow. All rights reserved. Built with ❤️ for developers worldwide.</p>
           </div>
         </div>
       </footer>

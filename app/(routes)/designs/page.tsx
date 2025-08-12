@@ -11,8 +11,8 @@ import { Button } from '@/components/ui/button'
 function Designs() {
 
     const { user } = useAuthContext();
-    const [wireframeList, setWireframeList] = useState([]);
-    const [filteredList, setFilteredList] = useState([]);
+    const [wireframeList, setWireframeList] = useState<RECORD[]>([]);
+    const [filteredList, setFilteredList] = useState<RECORD[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -22,14 +22,14 @@ function Designs() {
     }, [user])
 
     useEffect(() => {
-        if (searchTerm) {
+        if (searchTerm && Array.isArray(wireframeList)) {
             const filtered = wireframeList.filter((item: RECORD) => 
                 item.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 item.model?.toLowerCase().includes(searchTerm.toLowerCase())
             );
             setFilteredList(filtered);
         } else {
-            setFilteredList(wireframeList);
+            setFilteredList(Array.isArray(wireframeList) ? wireframeList : []);
         }
     }, [searchTerm, wireframeList]);
 
@@ -37,11 +37,26 @@ function Designs() {
         setLoading(true);
         try {
             const result = await axios.get('/api/wireframe-to-code?email=' + user?.email);
-            console.log(result.data);
-            setWireframeList(result.data);
-            setFilteredList(result.data);
+            console.log('API Response:', result.data);
+            
+            // Extract the data array from the API response and ensure it's an array
+            let wireframes: RECORD[] = [];
+            if (result.data?.success && Array.isArray(result.data?.data)) {
+                wireframes = result.data.data;
+            } else if (Array.isArray(result.data?.data)) {
+                wireframes = result.data.data;
+            } else if (Array.isArray(result.data)) {
+                wireframes = result.data;
+            }
+            
+            console.log('Processed wireframes:', wireframes);
+            setWireframeList(wireframes);
+            setFilteredList(wireframes);
         } catch (error) {
             console.error('Error fetching wireframes:', error);
+            // Set empty arrays on error
+            setWireframeList([]);
+            setFilteredList([]);
         } finally {
             setLoading(false);
         }
@@ -106,7 +121,7 @@ function Designs() {
                                 <div className="flex items-center gap-2 px-3 py-1 bg-blue-50 rounded-full">
                                     <Sparkles className="w-4 h-4 text-blue-600" />
                                     <span className="text-sm font-medium text-blue-700">
-                                        {wireframeList.length} Design{wireframeList.length !== 1 ? 's' : ''}
+                                        {Array.isArray(wireframeList) ? wireframeList.length : 0} Design{Array.isArray(wireframeList) && wireframeList.length !== 1 ? 's' : ''}
                                     </span>
                                 </div>
                             </div>
@@ -160,7 +175,7 @@ function Designs() {
                 </div>
 
                 {/* Results */}
-                {filteredList.length === 0 ? (
+                {!Array.isArray(filteredList) || filteredList.length === 0 ? (
                     <div className="text-center py-16">
                         <div className="w-24 h-24 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full flex items-center justify-center mx-auto mb-6">
                             <Palette className="w-12 h-12 text-gray-400" />
@@ -186,8 +201,8 @@ function Designs() {
                             ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
                             : 'grid-cols-1'
                     }`}>
-                        {filteredList.map((item: RECORD, index) => (
-                            <DesignCard key={index} item={item} viewMode={viewMode} />
+                        {Array.isArray(filteredList) && filteredList.length > 0 && filteredList.map((item: RECORD, index) => (
+                            <DesignCard key={item?.uid || index} item={item} viewMode={viewMode} />
                         ))}
                     </div>
                 )}

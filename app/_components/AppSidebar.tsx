@@ -85,7 +85,7 @@ export function AppSidebar() {
                                 UI Flow
                             </h2>
                             <p className='text-xs text-gray-500 font-medium tracking-wide uppercase whitespace-nowrap'>
-                                Wireframe to Code
+                                UI Flow
                             </p>
                         </div>
                     </div>

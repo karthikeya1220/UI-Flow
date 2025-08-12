@@ -99,7 +99,18 @@ export async function PUT(req: NextRequest) {
     try {
         const { uid, codeResp } = await req.json();
         
-        validateRequest({ uid, codeResp }, ['uid', 'codeResp']);
+        // Validate uid
+        if (!uid || uid.trim() === '') {
+            throw new AppError('UID is required', 400);
+        }
+        
+        // Validate codeResp - can be string or object with resp property
+        if (!codeResp || (typeof codeResp === 'object' && (!codeResp.resp || codeResp.resp.trim() === '')) || (typeof codeResp === 'string' && codeResp.trim() === '')) {
+            throw new AppError('Code response is required', 400);
+        }
+
+        console.log('Updating code for UID:', uid);
+        console.log('Code response type:', typeof codeResp);
 
         const result = await db.update(WireframeToCodeTable)
             .set({

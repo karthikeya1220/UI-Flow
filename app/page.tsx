@@ -187,7 +187,7 @@ export default function Home() {
               <div className="p-8">
                 <Image 
                   src={'/Wireframetocode.png'} 
-                  alt="Wireframe to code transformation demo" 
+                  alt="UI Flow transformation demo" 
                   width={1200} 
                   height={600}
                   className="w-full h-auto rounded-lg shadow-lg"

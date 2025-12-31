@@ -8,6 +8,48 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4.1-38B2AC?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
 [![Firebase](https://img.shields.io/badge/Firebase-11.2.0-orange?style=flat-square&logo=firebase)](https://firebase.google.com/)
 
+## 🚀 Live Demo
+
+**🌐 [Try UI Flow Now →](https://ui-flow.vercel.app)**
+
+Experience the power of AI-driven wireframe-to-code conversion in action!
+
+---
+
+## 🎯 Problem Statement
+
+In modern web development, converting design wireframes and mockups into production-ready code is a time-consuming and repetitive process. Developers often spend hours manually translating visual designs into React components, writing CSS, and ensuring responsive behavior. This creates several challenges:
+
+- ⏰ **Time-Intensive**: Manual conversion of designs to code takes significant development time
+- 🔄 **Repetitive Work**: Similar UI patterns require rewriting boilerplate code repeatedly
+- 🎨 **Design-Dev Gap**: Miscommunication between designers and developers leads to inconsistencies
+- 📱 **Responsive Complexity**: Ensuring designs work across all devices requires extensive testing
+- 🧩 **Component Consistency**: Maintaining consistent styling and structure across projects is difficult
+
+**UI Flow** solves these problems by leveraging cutting-edge AI technology to automatically generate clean, production-ready React code from wireframes and mockups, reducing development time by up to 70% while maintaining code quality and design consistency.
+
+---
+
+## 📸 Screenshots
+
+<div align="center">
+
+### Dashboard - Upload & Generate
+![Dashboard Screenshot](./public/screenshot-dashboard.png)
+*Upload wireframes, select AI models, and generate code with a beautiful, intuitive interface*
+
+### Code Editor - Review & Export
+![Code Editor Screenshot](./public/screenshot-code-editor.png)
+*Professional code editor with syntax highlighting and real-time preview*
+
+### Designs Gallery - Manage Projects
+![Designs Gallery Screenshot](./public/screenshot-designs.png)
+*Organize and access all your generated designs in one place*
+
+</div>
+
+---
+
 ## 📖 Overview
 
 **UI Flow** is an innovative web application that leverages cutting-edge AI technology to convert wireframes, mockups, and design images into clean, production-ready React code. Simply upload your design, describe your requirements, choose an AI model, and watch as your static designs come to life as interactive web applications.
@@ -100,6 +142,23 @@
 - **File Storage**: Supabase Storage (with base64 fallback)
 - **AI Integration**: OpenRouter API (Gemini, Llama, Deepseek)
 - **Deployment**: Vercel (recommended)
+
+### System Architecture
+
+<div align="center">
+
+![Architecture Diagram](./public/architecture-diagram.png)
+
+*High-level system architecture showing the interaction between frontend, backend services, and external APIs*
+
+</div>
+
+The application follows a modern serverless architecture:
+
+1. **Frontend Layer**: Next.js 15 with React 19 handles the UI, routing, and client-side logic
+2. **Authentication & Storage**: Firebase manages user authentication while Supabase handles file storage
+3. **Backend Services**: Next.js API routes process requests, interact with PostgreSQL via Drizzle ORM, and communicate with AI models through OpenRouter
+4. **Deployment**: Vercel provides edge-optimized hosting with automatic CI/CD
 
 ### Project Structure
 

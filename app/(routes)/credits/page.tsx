@@ -3,11 +3,11 @@ import { useAuthContext } from '@/app/provider'
 import { Button } from '@/components/ui/button'
 import axios from 'axios'
 import React, { useEffect, useState } from 'react'
-import { 
-    CreditCard, 
-    Sparkles, 
-    Zap, 
-    TrendingUp, 
+import {
+    CreditCard,
+    Sparkles,
+    Zap,
+    TrendingUp,
     Star,
     Gift,
     Clock,
@@ -20,20 +20,24 @@ function Credits() {
 
     const { user } = useAuthContext();
     const [userData, setUserData] = useState<any>();
+    const [usageCount, setUsageCount] = useState(0);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        user && GetUserCredits();
+        user && GetData();
     }, [user])
 
-    const GetUserCredits = async () => {
+    const GetData = async () => {
         setLoading(true);
         try {
-            const result = await axios.get('/api/user?email=' + user?.email);
-            console.log(result.data)
-            setUserData(result.data);
+            const [userResult, designsResult] = await Promise.all([
+                axios.get('/api/user?email=' + user?.email),
+                axios.get('/api/wireframe-to-code?email=' + user?.email)
+            ]);
+            setUserData(userResult.data?.data);
+            setUsageCount(designsResult.data?.count || 0);
         } catch (error) {
-            console.error('Error fetching user credits:', error);
+            console.error('Error fetching data:', error);
         } finally {
             setLoading(false);
         }
@@ -41,30 +45,29 @@ function Credits() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-                {/* Loading Header */}
-                <div className="relative overflow-hidden bg-white border-b border-gray-200/60 shadow-sm">
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 to-indigo-600/5"></div>
-                    <div className="relative max-w-7xl mx-auto px-6 py-8 sm:px-8">
+            <div className="min-h-screen bg-paper">
+                <div className="border-b border-hairline bg-paper">
+                    <div className="max-w-7xl mx-auto px-6 py-8 sm:px-8">
                         <div className="animate-pulse">
-                            <div className="h-8 bg-gray-200 rounded-lg w-48 mb-4"></div>
-                            <div className="h-4 bg-gray-200 rounded-lg w-80"></div>
+                            <div className="h-8 bg-hairline w-48 mb-4"></div>
+                            <div className="h-4 bg-hairline w-80"></div>
                         </div>
                     </div>
                 </div>
-                
-                {/* Loading Content */}
                 <div className="max-w-4xl mx-auto px-6 py-8 sm:px-8">
                     <div className="animate-pulse space-y-6">
-                        <div className="bg-white rounded-2xl shadow-lg p-8">
-                            <div className="h-6 bg-gray-200 rounded w-32 mb-4"></div>
-                            <div className="h-16 bg-gray-200 rounded"></div>
+                        <div className="bg-card border border-hairline p-8">
+                            <div className="h-6 bg-hairline w-32 mb-4"></div>
+                            <div className="h-16 bg-hairline"></div>
                         </div>
                     </div>
                 </div>
             </div>
         );
     }
+
+    const credits = userData?.credits || 0;
+    const totalGenerations = credits + usageCount; // remaining + used
 
     const creditPlans = [
         {
@@ -94,21 +97,20 @@ function Credits() {
     ];
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-            {/* Enhanced Header Section */}
-            <div className="relative overflow-hidden bg-white border-b border-gray-200/60 shadow-sm">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 to-indigo-600/5"></div>
-                <div className="relative max-w-7xl mx-auto px-6 py-8 sm:px-8">
+        <div className="min-h-screen bg-paper">
+            {/* Header */}
+            <div className="border-b border-hairline bg-paper">
+                <div className="max-w-7xl mx-auto px-6 py-8 sm:px-8">
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl shadow-lg">
-                            <Coins className="w-6 h-6 text-white" />
+                        <div className="p-2 bg-ink rounded-md">
+                            <Coins className="w-6 h-6 text-paper" />
                         </div>
                         <div>
-                            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">
-                                Credits & Billing
+                            <h1 className="font-display text-3xl md:text-4xl font-semibold text-ink tracking-tight">
+                                Credits
                             </h1>
-                            <p className="text-lg text-gray-600 mt-1">
-                                Manage your AI generation credits and upgrade your plan
+                            <p className="text-lg text-ink-soft mt-1">
+                                Manage your AI generation credits
                             </p>
                         </div>
                     </div>
@@ -119,18 +121,17 @@ function Credits() {
             <div className="max-w-6xl mx-auto px-6 py-8 sm:px-8">
                 {/* Current Credits Card */}
                 <div className="mb-8">
-                    <div className="bg-gradient-to-br from-white to-blue-50/50 rounded-2xl shadow-xl border border-blue-100/50 p-8 relative overflow-hidden">
-                        {/* Background Pattern */}
+                    <div className="bg-card border border-hairline rounded-md p-8 relative overflow-hidden">
                         <div className="absolute inset-0 opacity-5">
-                            <div className="absolute top-4 right-4 w-32 h-32 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full"></div>
-                            <div className="absolute bottom-4 left-4 w-24 h-24 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full"></div>
+                            <div className="absolute top-4 right-4 w-32 h-32 bg-accent rounded-full"></div>
+                            <div className="absolute bottom-4 left-4 w-24 h-24 bg-accent rounded-full"></div>
                         </div>
-                        
+
                         <div className="relative z-10">
                             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
                                 <div className="mb-6 lg:mb-0">
                                     <div className="flex items-center gap-3 mb-4">
-                                        <div className="p-3 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl shadow-lg">
+                                        <div className="p-3 bg-accent rounded-md">
                                             <Sparkles className="w-6 h-6 text-white" />
                                         </div>
                                         <div>
@@ -138,10 +139,10 @@ function Credits() {
                                             <p className="text-gray-600">Available AI generation credits</p>
                                         </div>
                                     </div>
-                                    
+
                                     <div className="flex items-center gap-4">
-                                        <div className="text-5xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                                            {userData?.credits || 0}
+                                        <div className="font-display text-5xl font-semibold text-ink">
+                                            {credits}
                                         </div>
                                         <div className="text-gray-600">
                                             <div className="text-sm font-medium">Credits Remaining</div>
@@ -149,17 +150,13 @@ function Credits() {
                                         </div>
                                     </div>
                                 </div>
-                                
+
+                                {/* ponytail: Stripe checkout disabled — add when billing is needed */}
                                 <div className="flex flex-col sm:flex-row gap-4">
-                                    <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold px-8 py-3 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
-                                        <CreditCard className="w-5 h-5 mr-2" />
-                                        Buy More Credits
-                                        <ArrowRight className="w-4 h-4 ml-2" />
-                                    </Button>
-                                    <Button variant="outline" className="border-gray-200 hover:bg-gray-50 font-medium px-6 py-3">
-                                        View Usage History
-                                        <Clock className="w-4 h-4 ml-2" />
-                                    </Button>
+                                <Button variant="gradient" disabled className="opacity-60 cursor-not-allowed">
+                                    <CreditCard className="w-5 h-5 mr-2" />
+                                    Buy More Credits
+                                </Button>
                                 </div>
                             </div>
                         </div>
@@ -176,12 +173,12 @@ function Credits() {
                     <div className="grid md:grid-cols-3 gap-6">
                         {creditPlans.map((plan, index) => (
                             <div key={index} className={`
-                                relative bg-white rounded-2xl shadow-lg border border-gray-200 p-8 transition-all duration-300 transform hover:-translate-y-2 hover:shadow-2xl
-                                ${plan.popular ? 'ring-2 ring-blue-500 ring-opacity-50 shadow-blue-100/50' : ''}
+                                relative bg-card rounded-md border border-hairline p-8 transition-all duration-200
+                                ${plan.popular ? 'border-accent' : ''}
                             `}>
                                 {plan.popular && (
                                     <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                                        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-1 rounded-full text-sm font-semibold flex items-center gap-1">
+                                        <div className="bg-accent text-white px-4 py-1 rounded-full font-mono text-xs font-medium flex items-center gap-1">
                                             <Star className="w-3 h-3" />
                                             Most Popular
                                         </div>
@@ -199,9 +196,9 @@ function Credits() {
                                 <div className="text-center mb-6">
                                     <div className={`
                                         w-16 h-16 mx-auto rounded-xl flex items-center justify-center mb-4
-                                        ${plan.popular 
-                                            ? 'bg-gradient-to-r from-blue-600 to-indigo-600' 
-                                            : 'bg-gradient-to-r from-gray-100 to-gray-200'
+                                        ${plan.popular
+                                            ? 'bg-accent'
+                                            : 'bg-paper-deep'
                                         }
                                     `}>
                                         <Zap className={`w-8 h-8 ${plan.popular ? 'text-white' : 'text-gray-600'}`} />
@@ -220,14 +217,9 @@ function Credits() {
                                     ))}
                                 </ul>
 
-                                <Button className={`
-                                    w-full py-3 font-semibold transition-all duration-300
-                                    ${plan.popular 
-                                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl' 
-                                        : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
-                                    }
-                                `}>
-                                    Get {plan.name}
+                                {/* ponytail: no-op buttons until Stripe is wired */}
+                                <Button disabled className="w-full py-3 font-semibold opacity-60 cursor-not-allowed">
+                                    Coming Soon
                                 </Button>
                             </div>
                         ))}
@@ -236,32 +228,32 @@ function Credits() {
 
                 {/* Usage Stats */}
                 <div className="grid md:grid-cols-2 gap-6">
-                    <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+                    <div className="bg-card border border-hairline rounded-md p-6">
                         <div className="flex items-center gap-3 mb-4">
-                            <div className="p-2 bg-green-100 rounded-lg">
-                                <TrendingUp className="w-5 h-5 text-green-600" />
+                            <div className="p-2 bg-paper-deep rounded-md">
+                                <TrendingUp className="w-5 h-5 text-accent" />
                             </div>
                             <div>
-                                <h3 className="font-semibold text-gray-900">Usage This Month</h3>
-                                <p className="text-sm text-gray-600">Track your AI generation activity</p>
+                                <h3 className="font-semibold text-gray-900">Total Generations</h3>
+                                <p className="text-sm text-gray-600">Wireframes converted to code</p>
                             </div>
                         </div>
-                        <div className="text-2xl font-bold text-gray-900">0 Credits Used</div>
-                        <div className="text-sm text-gray-600 mt-1">0% of available credits</div>
+                        <div className="text-2xl font-bold text-gray-900">{usageCount} Used</div>
+                        <div className="text-sm text-gray-600 mt-1">{credits} credits remaining</div>
                     </div>
 
-                    <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+                    <div className="bg-card border border-hairline rounded-md p-6">
                         <div className="flex items-center gap-3 mb-4">
-                            <div className="p-2 bg-purple-100 rounded-lg">
-                                <Gift className="w-5 h-5 text-purple-600" />
+                            <div className="p-2 bg-paper-deep rounded-md">
+                                <Gift className="w-5 h-5 text-accent" />
                             </div>
                             <div>
-                                <h3 className="font-semibold text-gray-900">Rewards</h3>
-                                <p className="text-sm text-gray-600">Earn bonus credits</p>
+                                <h3 className="font-semibold text-gray-900">Free Credits</h3>
+                                <p className="text-sm text-gray-600">Included with your account</p>
                             </div>
                         </div>
-                        <div className="text-2xl font-bold text-gray-900">0 Bonus Credits</div>
-                        <div className="text-sm text-gray-600 mt-1">Refer friends to earn more</div>
+                        <div className="text-2xl font-bold text-gray-900">3 per user</div>
+                        <div className="text-sm text-gray-600 mt-1">Given on signup</div>
                     </div>
                 </div>
             </div>

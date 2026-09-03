@@ -12,7 +12,7 @@ function DesignCard({ item, viewMode = 'grid' }: { item: any, viewMode?: 'grid' 
     
     if (viewMode === 'list') {
         return (
-            <div className='group bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-200 overflow-hidden'>
+            <div className='group bg-card rounded-md hover:shadow-sm transition-all duration-200 border border-hairline overflow-hidden'>
                 <div className="flex">
                     <div className="w-64 flex-shrink-0">
                         <div className="relative">
@@ -64,7 +64,7 @@ function DesignCard({ item, viewMode = 'grid' }: { item: any, viewMode?: 'grid' 
                             
                             <div className="flex-shrink-0 ml-6">
                                 <Link href={'/view-code/' + item?.uid}>
-                                    <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-300">
+                                    <Button variant="gradient">
                                         <Eye className="w-4 h-4 mr-2" />
                                         View Code
                                         <ExternalLink className="w-4 h-4 ml-2" />
@@ -79,7 +79,7 @@ function DesignCard({ item, viewMode = 'grid' }: { item: any, viewMode?: 'grid' 
     }
     
     return (
-        <div className='group bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-200 overflow-hidden'>
+        <div className='group bg-card rounded-md hover:shadow-sm transition-all duration-200 border border-hairline overflow-hidden'>
             <div className="relative">
                 <Image 
                     src={item?.imageUrl} 
@@ -93,7 +93,7 @@ function DesignCard({ item, viewMode = 'grid' }: { item: any, viewMode?: 'grid' 
                 {/* Hover overlay */}
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
                     <Link href={'/view-code/' + item?.uid}>
-                        <Button className="bg-white/90 hover:bg-white text-gray-900 shadow-lg">
+                        <Button variant="glass">
                             <Eye className="w-4 h-4 mr-2" />
                             Quick View
                         </Button>
@@ -105,7 +105,7 @@ function DesignCard({ item, viewMode = 'grid' }: { item: any, viewMode?: 'grid' 
                 {/* Model info and date */}
                 <div className="flex items-center justify-between mb-3">
                     {modelObj && (
-                        <div className='flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-full border border-blue-100/50'>
+                        <div className='flex items-center gap-2 px-3 py-1 bg-paper-deep rounded-full border border-hairline'>
                             <Image src={modelObj.icon} alt={modelObj.modelName ?? ''}
                                 width={20}
                                 height={20}
@@ -121,7 +121,7 @@ function DesignCard({ item, viewMode = 'grid' }: { item: any, viewMode?: 'grid' 
                 </div>
 
                 {/* Title */}
-                <h3 className='font-bold text-lg text-gray-900 mb-2 group-hover:text-blue-600 transition-colors'>
+                <h3 className='font-display font-semibold text-lg text-ink mb-2 group-hover:text-accent transition-colors'>
                     Wireframe Design
                 </h3>
 
@@ -138,7 +138,7 @@ function DesignCard({ item, viewMode = 'grid' }: { item: any, viewMode?: 'grid' 
                     </div>
                     
                     <Link href={'/view-code/' + item?.uid}>
-                        <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                        <Button variant="gradient">
                             <Code className="w-4 h-4 mr-2" />
                             View Code
                         </Button>

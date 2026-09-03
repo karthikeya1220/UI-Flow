@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UI Flow — System Architecture</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --bg2: #ffffff;
+      --fg: #1e293b;
+      --fg2: #2b2e31;
+      --border: #e2e8f0;
+      --accent: #6366f1;
+      --accent2: #06b6d4;
+      --layer1: #ede9fe;
+      --layer2: #dbeafe;
+      --layer3: #d1fae5;
+      --layer4: #fef3c7;
+      --node-bg: #ffffff;
+      --node-border: #cbd5e1;
+      --node-shadow: rgba(0, 0, 0, .08);
+      --edge: #94a3b8;
+      --edge-active: #6366f1;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0f172a;
+      --bg2: #1e293b;
+      --fg: #f1f5f9;
+      --fg2: #94a3b8;
+      --border: #334155;
+      --accent: #818cf8;
+      --accent2: #22d3ee;
+      --layer1: #1e1b4b;
+      --layer2: #172554;
+      --layer3: #064e3b;
+      --layer4: #451a03;
+      --node-bg: #1e293b;
+      --node-border: #475569;
+      --node-shadow: rgba(0, 0, 0, .3);
+      --edge: #64748b;
+      --edge-active: #818cf8;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      overflow: hidden;
+      height: 100vh;
+    }
+
+    /* Header */
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 24px;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(12px);
+    }
+
+    .header h1 {
+      font-size: 18px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header-sub {
+      font-size: 12px;
+      color: var(--fg2);
+      margin-left: 12px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .controls button {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--fg);
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 500;
+      transition: all .2s;
+    }
+
+    .controls button:hover {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .controls button.active {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    /* Canvas */
+    .canvas {
+      position: absolute;
+      top: 56px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      overflow: hidden;
+      cursor: grab;
+    }
+
+    .canvas:active {
+      cursor: grabbing;
+    }
+
+    .canvas svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Layer bands */
+    .layer-band {
+      rx: 12;
+      ry: 12;
+      opacity: 0.35;
+    }
+
+    .layer-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      fill: var(--fg2);
+      opacity: 0.6;
+    }
+
+    /* Nodes */
+    .node {
+      cursor: pointer;
+      transition: transform .2s, filter .2s;
+    }
+
+    .node:hover {
+      transform: scale(1.04);
+      filter: brightness(1.05);
+    }
+
+    .node rect {
+      rx: 10;
+      ry: 10;
+      stroke-width: 1.5;
+      transition: stroke .2s, stroke-width .2s;
+    }
+
+    .node:hover rect {
+      stroke: var(--accent);
+      stroke-width: 2.5;
+    }
+
+    .node text {
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+
+    .node-icon {
+      font-size: 20px;
+    }
+
+    .node-label {
+      font-size: 13px;
+      font-weight: 600;
+      fill: var(--fg);
+    }
+
+    .node-desc {
+      font-size: 10px;
+      fill: var(--fg2);
+    }
+
+    /* Edges */
+    .edge {
+      fill: none;
+      stroke-width: 1.5;
+      marker-end: url(#arrowhead);
+      opacity: 0.5;
+      transition: opacity .3s, stroke .3s, stroke-width .3s;
+    }
+
+    .edge.highlight {
+      opacity: 1;
+      stroke: var(--edge-active);
+      stroke-width: 2.5;
+    }
+
+    .edge-label {
+      font-size: 9px;
+      fill: var(--fg2);
+      font-weight: 500;
+    }
+
+    /* Tooltip */
+    .tooltip {
+      position: fixed;
+      z-index: 200;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 18px;
+      box-shadow: 0 8px 32px var(--node-shadow);
+      max-width: 300px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .2s;
+    }
+
+    .tooltip.show {
+      opacity: 1;
+    }
+
+    .tooltip h3 {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--fg);
+    }
+
+    .tooltip p {
+      font-size: 12px;
+      color: var(--fg2);
+      line-height: 1.5;
+    }
+
+    .tooltip .tag {
+      display: inline-block;
+      background: var(--accent);
+      color: white;
+      font-size: 9px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 4px;
+      margin-top: 6px;
+      text-transform: uppercase;
+    }
+
+    /* Legend */
+    .legend {
+      position: fixed;
+      bottom: 16px;
+      left: 16px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 11px;
+      color: var(--fg2);
+      z-index: 50;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+    }
+
+    /* Minimap */
+    .minimap {
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      width: 180px;
+      height: 120px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      z-index: 50;
+      opacity: 0.8;
+    }
+
+    .minimap:hover {
+      opacity: 1;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="header">
+    <div style="display:flex;align-items:center;">
+      <h1>UI Flow — System Architecture</h1>
+      <span class="header-sub">Wireframe-to-Code SaaS Platform</span>
+    </div>
+    <div class="controls">
+      <button onclick="resetView()" title="Reset view">⟲ Reset</button>
+      <button onclick="toggleTheme()" id="themeBtn" title="Toggle theme">🌙 Dark</button>
+    </div>
+  </div>
+
+  <div class="canvas" id="canvas">
+    <svg id="svg" viewBox="0 0 1400 900" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="var(--edge)" />
+        </marker>
+        <marker id="arrowhead-active" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="var(--edge-active)" />
+        </marker>
+        <filter id="shadow" x="-10%" y="-10%" width="130%" height="140%">
+          <feDropShadow dx="0" dy="2" stdDeviation="4" flood-opacity="0.08" />
+        </filter>
+        <linearGradient id="grad-client" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#6366f1" />
+          <stop offset="100%" stop-color="#818cf8" />
+        </linearGradient>
+        <linearGradient id="grad-api" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#06b6d4" />
+          <stop offset="100%" stop-color="#22d3ee" />
+        </linearGradient>
+        <linearGradient id="grad-external" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#10b981" />
+          <stop offset="100%" stop-color="#34d399" />
+        </linearGradient>
+        <linearGradient id="grad-db" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#f59e0b" />
+          <stop offset="100%" stop-color="#fbbf24" />
+        </linearGradient>
+      </defs>
+
+      <!-- Layer bands -->
+      <rect class="layer-band" x="20" y="20" width="1360" height="195" fill="var(--layer1)" />
+      <text class="layer-label" x="40" y="48">Client Layer</text>
+
+      <rect class="layer-band" x="20" y="235" width="1360" height="195" fill="var(--layer2)" />
+      <text class="layer-label" x="40" y="263">API Layer — Next.js Route Handlers</text>
+
+      <rect class="layer-band" x="20" y="450" width="1360" height="195" fill="var(--layer3)" />
+      <text class="layer-label" x="40" y="478">External Services</text>
+
+      <rect class="layer-band" x="20" y="665" width="1360" height="195" fill="var(--layer4)" />
+      <text class="layer-label" x="40" y="693">Data Layer</text>
+
+      <!-- ==================== EDGES ==================== -->
+      <!-- Client → API -->
+      <path class="edge" d="M 250 175 L 250 285" data-from="browser" data-to="api-user" />
+      <text class="edge-label" x="260" y="230">REST</text>
+
+      <path class="edge" d="M 550 175 L 550 285" data-from="browser" data-to="api-wireframe" />
+      <text class="edge-label" x="560" y="230">CRUD</text>
+
+      <path class="edge" d="M 850 175 L 850 285" data-from="browser" data-to="api-ai" />
+      <text class="edge-label" x="860" y="230">Streaming</text>
+
+      <path class="edge" d="M 1150 175 L 1150 285" data-from="browser" data-to="api-export" />
+      <text class="edge-label" x="1160" y="230">Download</text>
+
+      <!-- API → External -->
+      <path class="edge" d="M 850 375 L 350 505" data-from="api-ai" data-to="openrouter" />
+      <text class="edge-label" x="560" y="425">OpenAI SDK</text>
+
+      <path class="edge" d="M 550 375 L 650 505" data-from="api-wireframe" data-to="supabase" />
+      <text class="edge-label" x="570" y="445">File Upload</text>
+
+      <path class="edge" d="M 250 375 L 1050 505" data-from="api-user" data-to="firebase-auth" />
+      <text class="edge-label" x="620" y="440">JWT Verify</text>
+
+      <!-- API → DB -->
+      <path class="edge" d="M 550 375 L 550 720" data-from="api-wireframe" data-to="neon-db" />
+      <text class="edge-label" x="560" y="560">Drizzle ORM</text>
+
+      <path class="edge" d="M 250 375 L 350 720" data-from="api-user" data-to="neon-db" />
+      <text class="edge-label" x="260" y="560">Drizzle ORM</text>
+
+      <!-- ==================== CLIENT NODES ==================== -->
+      <g class="node" data-id="browser"
+        data-tip="Modern browser running the Next.js 15 client bundle. React 19 with Server Components, Tailwind CSS, and Sandpack for live code preview.">
+        <rect x="100" y="70" width="300" height="105" fill="var(--node-bg)" stroke="url(#grad-client)"
+          filter="url(#shadow)" />
+        <text class="node-icon" x="120" y="105">🌐</text>
+        <text class="node-label" x="148" y="103">Browser (Client)</text>
+        <text class="node-desc" x="120" y="122">Next.js 15 · React 19 · TypeScript</text>
+        <text class="node-desc" x="120" y="137">Tailwind CSS · Sandpack Editor</text>
+        <text class="node-desc" x="120" y="152">Firebase Auth SDK · Axios</text>
+      </g>
+
+      <g class="node" data-id="pages"
+        data-tip="App Router pages: Landing (/), Dashboard (/dashboard), Designs (/designs), Credits (/credits), and Code Viewer (/view-code/[uid]).">
+        <rect x="460" y="70" width="260" height="105" fill="var(--node-bg)" stroke="url(#grad-client)"
+          filter="url(#shadow)" />
+        <text class="node-icon" x="480" y="105">📄</text>
+        <text class="node-label" x="508" y="103">App Router Pages</text>
+        <text class="node-desc" x="480" y="122">/ · /dashboard · /designs</text>
+        <text class="node-desc" x="480" y="137">/credits · /view-code/[uid]</text>
+        <text class="node-desc" x="480" y="152">Protected routes via auth guard</text>
+      </g>
+
+      <g class="node" data-id="components"
+        data-tip="UI components: AppSidebar, AppHeader, ImageUpload, CodeEditor (Sandpack), SelectionDetail, DesignCard, ProfileAvatar, and shadcn/ui primitives.">
+        <rect x="780" y="70" width="260" height="105" fill="var(--node-bg)" stroke="url(#grad-client)"
+          filter="url(#shadow)" />
+        <text class="node-icon" x="800" y="105">🧩</text>
+        <text class="node-label" x="828" y="103">UI Components</text>
+        <text class="node-desc" x="800" y="122">Sidebar · Header · Upload</text>
+        <text class="node-desc" x="800" y="137">CodeEditor · DesignCard</text>
+        <text class="node-desc" x="800" y="152">shadcn/ui · Lucide Icons</text>
+      </g>
+
+      <g class="node" data-id="context"
+        data-tip="React Context for global auth state. AuthContext provides user + loading. UserDetailContext manages DB user data (credits, profile).">
+        <rect x="1100" y="70" width="240" height="105" fill="var(--node-bg)" stroke="url(#grad-client)"
+          filter="url(#shadow)" />
+        <text class="node-icon" x="1120" y="105">🔮</text>
+        <text class="node-label" x="1148" y="103">State Management</text>
+        <text class="node-desc" x="1120" y="122">AuthContext (Firebase)</text>
+        <text class="node-desc" x="1120" y="137">UserDetailContext (DB)</text>
+        <text class="node-desc" x="1120" y="152">React Context API</text>
+      </g>
+
+      <!-- ==================== API NODES ==================== -->
+      <g class="node" data-id="api-user"
+        data-tip="POST creates/finds user (3 free credits). GET fetches user by email.">
+        <rect x="100" y="285" width="260" height="90" fill="var(--node-bg)" stroke="url(#grad-api)"
+          filter="url(#shadow)" />
+        <text class="node-icon" x="120" y="318">👤</text>
+        <text class="node-label" x="148" y="316">/api/user</text>
+        <text class="node-desc" x="120" y="336">POST — Create/find user</text>
+        <text class="node-desc" x="120" y="351">GET — Fetch user by email</text>
+      </g>
+
+      <g class="node" data-id="api-wireframe"
+        data-tip="Full CRUD for wireframe-to-code projects. Creates record, fetches by UID or email, updates generated code.">
+        <rect x="420" y="285" width="260" height="90" fill="var(--node-bg)" stroke="url(#grad-api)"
+          filter="url(#shadow)" />
+        <text class="node-icon" x="440" y="318">📐</text>
+        <text class="node-label" x="468" y="316">/api/wireframe-to-code</text>
+        <text class="node-desc" x="440" y="336">POST — Create project</text>
+        <text class="node-desc" x="440" y="351">GET/PUT — Fetch/update code</text>
+      </g>
+
+      <g class="node" data-id="api-ai"
+        data-tip="Streams AI-generated code via OpenRouter API. Supports Gemini, Llama, and Deepseek models. 300s max duration.">
+        <rect x="740" y="285" width="260" height="90" fill="var(--node-bg)" stroke="url(#grad-api)"
+          filter="url(#shadow)" />
+        <text class="node-icon" x="760" y="318">🤖</text>
+        <text class="node-label" x="788" y="316">/api/ai-model</text>
+        <text class="node-desc" x="760" y="336">POST — Stream AI code gen</text>
+        <text class="node-desc" x="760" y="351">ReadableStream · 300s timeout</text>
+      </g>
+
+      <g class="node" data-id="api-export"
+        data-tip="Exports generated code as JSX/TSX file download. Supports format parameter.">
+        <rect x="1060" y="285" width="260" height="90" fill="var(--node-bg)" stroke="url(#grad-api)"
+          filter="url(#shadow)" />
+        <text class="node-icon" x="1080" y="318">📦</text>
+        <text class="node-label" x="1108" y="316">/api/export-code</text>
+        <text class="node-desc" x="1080" y="336">GET — Download JSX/TSX</text>
+        <text class="node-desc" x="1080" y="351">Content-Disposition header</text>
+      </g>
+
+      <!-- ==================== EXTERNAL SERVICE NODES ==================== -->
+      <g class="node" data-id="openrouter"
+        data-tip="Multi-model AI gateway. Routes to Gemini 2.0 Flash, Qwen Turbo, and other models. Pay-per-use with streaming support.">
+        <rect x="180" y="505" width="300" height="90" fill="var(--node-bg)" stroke="url(#grad-external)"
+          filter="url(#shadow)" />
+        <text class="node-icon" x="200" y="538">🧠</text>
+        <text class="node-label" x="228" y="536">OpenRouter API</text>
+        <text class="node-desc" x="200" y="556">Gemini 2.0 Flash · Qwen Turbo</text>
+        <text class="node-desc" x="200" y="571">Multi-model gateway · Streaming</text>
+      </g>
+
+      <g class="node" data-id="supabase"
+        data-tip="S3-compatible object storage for wireframe images. Public URLs for AI processing. Free tier: 1GB.">
+        <rect x="560" y="505" width="280" height="90" fill="var(--node-bg)" stroke="url(#grad-external)"
+          filter="url(#shadow)" />
+        <text class="node-icon" x="580" y="538">☁️</text>
+        <text class="node-label" x="608" y="536">Supabase Storage</text>
+        <text class="node-desc" x="580" y="556">S3-compatible · Public URLs</text>
+        <text class="node-desc" x="580" y="571">Wireframe image hosting · 1GB free</text>
+      </g>
+
+      <g class="node" data-id="firebase-auth"
+        data-tip="Firebase Authentication with Google Sign-In popup. JWT tokens stored in localStorage. 50K MAU free tier.">
+        <rect x="920" y="505" width="320" height="90" fill="var(--node-bg)" stroke="url(#grad-external)"
+          filter="url(#shadow)" />
+        <text class="node-icon" x="940" y="538">🔐</text>
+        <text class="node-label" x="968" y="536">Firebase Authentication</text>
+        <text class="node-desc" x="940" y="556">Google Sign-In · JWT tokens</text>
+        <text class="node-desc" x="940" y="571">50K MAU free · Session persistence</text>
+      </g>
+
+      <!-- ==================== DATABASE NODES ==================== -->
+      <g class="node" data-id="neon-db"
+        data-tip="Serverless PostgreSQL via Neon. Auto-scaling with connection pooling. Drizzle ORM for type-safe queries.">
+        <rect x="180" y="720" width="560" height="110" fill="var(--node-bg)" stroke="url(#grad-db)"
+          filter="url(#shadow)" />
+        <text class="node-icon" x="200" y="755">🗄️</text>
+        <text class="node-label" x="228" y="753">PostgreSQL (Neon)</text>
+        <text class="node-desc" x="200" y="775">Serverless · Auto-scaling · Drizzle ORM</text>
+        <text class="node-desc" x="200" y="792">users — id, name, email, credits</text>
+        <text class="node-desc" x="200" y="807">wireframeToCode — id, uid, imageUrl, model, description, code (JSONB),
+          createdBy</text>
+      </g>
+
+      <!-- Decorative: Credit flow -->
+      <g class="node" data-id="credits"
+        data-tip="Credit system: new users get 3 free credits. Each AI generation costs 1 credit. Stripe integration planned.">
+        <rect x="820" y="720" width="240" height="110" fill="var(--node-bg)" stroke="url(#grad-db)"
+          filter="url(#shadow)" />
+        <text class="node-icon" x="840" y="755">💰</text>
+        <text class="node-label" x="868" y="753">Credits System</text>
+        <text class="node-desc" x="840" y="775">3 free credits per user</text>
+        <text class="node-desc" x="840" y="792">1 credit per AI generation</text>
+        <text class="node-desc" x="840" y="807">Stripe integration planned</text>
+      </g>
+
+    </svg>
+  </div>
+
+  <div class="tooltip" id="tooltip">
+    <h3 id="tip-title"></h3>
+    <p id="tip-desc"></p>
+    <span class="tag" id="tip-tag"></span>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-dot" style="background:linear-gradient(135deg,#6366f1,#818cf8)"></div> Client Layer
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:linear-gradient(135deg,#06b6d4,#22d3ee)"></div> API Layer
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:linear-gradient(135deg,#10b981,#34d399)"></div> External Services
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:linear-gradient(135deg,#f59e0b,#fbbf24)"></div> Data Layer
+    </div>
+  </div>
+
+  <script>
+    // Theme
+    let dark = false;
+    function toggleTheme() {
+      dark = !dark;
+      document.documentElement.setAttribute('data-theme', dark ? 'dark' : '');
+      document.getElementById('themeBtn').textContent = dark ? '☀️ Light' : '🌙 Dark';
+    }
+
+    // Pan & Zoom
+    const canvas = document.getElementById('canvas');
+    const svg = document.getElementById('svg');
+    let viewBox = { x: 0, y: 0, w: 1400, h: 900 };
+    let isPanning = false, panStart = { x: 0, y: 0 };
+
+    canvas.addEventListener('mousedown', e => {
+      if (e.target.closest('.node')) return;
+      isPanning = true;
+      panStart = { x: e.clientX, y: e.clientY };
+    });
+    canvas.addEventListener('mousemove', e => {
+      if (!isPanning) return;
+      const dx = (e.clientX - panStart.x) * viewBox.w / svg.clientWidth;
+      const dy = (e.clientY - panStart.y) * viewBox.h / svg.clientHeight;
+      viewBox.x -= dx; viewBox.y -= dy;
+      panStart = { x: e.clientX, y: e.clientY };
+      updateViewBox();
+    });
+    canvas.addEventListener('mouseup', () => isPanning = false);
+    canvas.addEventListener('mouseleave', () => isPanning = false);
+
+    canvas.addEventListener('wheel', e => {
+      e.preventDefault();
+      const scale = e.deltaY > 0 ? 1.1 : 0.9;
+      const rect = svg.getBoundingClientRect();
+      const mx = (e.clientX - rect.left) / rect.width;
+      const my = (e.clientY - rect.top) / rect.height;
+      const nw = viewBox.w * scale, nh = viewBox.h * scale;
+      viewBox.x += (viewBox.w - nw) * mx;
+      viewBox.y += (viewBox.h - nh) * my;
+      viewBox.w = nw; viewBox.h = nh;
+      updateViewBox();
+    }, { passive: false });
+
+    function updateViewBox() {
+      svg.setAttribute('viewBox', `${viewBox.x} ${viewBox.y} ${viewBox.w} ${viewBox.h}`);
+    }
+    function resetView() {
+      viewBox = { x: 0, y: 0, w: 1400, h: 900 };
+      updateViewBox();
+    }
+
+    // Tooltips
+    const tooltip = document.getElementById('tooltip');
+    const tipTitle = document.getElementById('tip-title');
+    const tipDesc = document.getElementById('tip-desc');
+    const tipTag = document.getElementById('tip-tag');
+
+    const tagMap = {
+      browser: 'Client', pages: 'Client', components: 'Client', context: 'Client',
+      'api-user': 'API', 'api-wireframe': 'API', 'api-ai': 'API', 'api-export': 'API',
+      openrouter: 'External', supabase: 'External', 'firebase-auth': 'External',
+      'neon-db': 'Database', credits: 'Database'
+    };
+
+    document.querySelectorAll('.node').forEach(node => {
+      node.addEventListener('mouseenter', e => {
+        const id = node.dataset.id;
+        const tip = node.dataset.tip;
+        tipTitle.textContent = node.querySelector('.node-label')?.textContent || id;
+        tipDesc.textContent = tip || '';
+        tipTag.textContent = tagMap[id] || '';
+        tooltip.classList.add('show');
+      });
+      node.addEventListener('mousemove', e => {
+        tooltip.style.left = (e.clientX + 16) + 'px';
+        tooltip.style.top = (e.clientY - 10) + 'px';
+      });
+      node.addEventListener('mouseleave', () => {
+        tooltip.classList.remove('show');
+      });
+    });
+
+    // Edge highlighting on node hover
+    document.querySelectorAll('.node').forEach(node => {
+      node.addEventListener('mouseenter', () => {
+        const id = node.dataset.id;
+        document.querySelectorAll('.edge').forEach(edge => {
+          if (edge.dataset.from === id || edge.dataset.to === id) {
+            edge.classList.add('highlight');
+            edge.style.markerEnd = 'url(#arrowhead-active)';
+          }
+        });
+      });
+      node.addEventListener('mouseleave', () => {
+        document.querySelectorAll('.edge').forEach(edge => {
+          edge.classList.remove('highlight');
+          edge.style.markerEnd = 'url(#arrowhead)';
+        });
+      });
+    });
+  </script>
+</body>
+
+</html>

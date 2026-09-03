@@ -165,19 +165,19 @@ function ImageUpload() {
             <div className="flex items-center justify-center">
                 <div className="flex items-center space-x-4">
                     <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors ${
-                        previewUrl ? 'bg-green-500 border-green-500 text-white' : 'bg-blue-500 border-blue-500 text-white'
+                        previewUrl ? 'bg-accent border-accent text-white' : 'bg-ink border-ink text-paper'
                     }`}>
                         {previewUrl ? <CheckCircle className="w-5 h-5" /> : <span className="text-sm font-semibold">1</span>}
                     </div>
-                    <div className="h-px w-16 bg-gray-300"></div>
+                    <div className="h-px w-16 bg-hairline"></div>
                     <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors ${
-                        model ? 'bg-green-500 border-green-500 text-white' : previewUrl ? 'bg-blue-500 border-blue-500 text-white' : 'bg-gray-200 border-gray-300 text-gray-500'
+                        model ? 'bg-accent border-accent text-white' : previewUrl ? 'bg-ink border-ink text-paper' : 'bg-paper-deep border-hairline text-ink-soft'
                     }`}>
                         {model ? <CheckCircle className="w-5 h-5" /> : <span className="text-sm font-semibold">2</span>}
                     </div>
-                    <div className="h-px w-16 bg-gray-300"></div>
+                    <div className="h-px w-16 bg-hairline"></div>
                     <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors ${
-                        description ? 'bg-green-500 border-green-500 text-white' : model ? 'bg-blue-500 border-blue-500 text-white' : 'bg-gray-200 border-gray-300 text-gray-500'
+                        description ? 'bg-accent border-accent text-white' : model ? 'bg-ink border-ink text-paper' : 'bg-paper-deep border-hairline text-ink-soft'
                     }`}>
                         {description ? <CheckCircle className="w-5 h-5" /> : <span className="text-sm font-semibold">3</span>}
                     </div>
@@ -188,19 +188,19 @@ function ImageUpload() {
             <div className="flex items-center justify-center">
                 <div className="flex items-center space-x-4 text-sm text-gray-600">
                     <div className="w-24 text-center">
-                        <span className={previewUrl ? 'text-green-600 font-medium' : 'text-blue-600 font-medium'}>
+                        <span className={previewUrl ? 'text-accent font-medium' : 'text-ink font-medium'}>
                             Upload Image
                         </span>
                     </div>
                     <div className="w-16"></div>
                     <div className="w-24 text-center">
-                        <span className={model ? 'text-green-600 font-medium' : previewUrl ? 'text-blue-600 font-medium' : 'text-gray-500'}>
+                        <span className={model ? 'text-accent font-medium' : previewUrl ? 'text-ink font-medium' : 'text-ink-soft'}>
                             Select Model
                         </span>
                     </div>
                     <div className="w-16"></div>
                     <div className="w-24 text-center">
-                        <span className={description ? 'text-green-600 font-medium' : model ? 'text-blue-600 font-medium' : 'text-gray-500'}>
+                        <span className={description ? 'text-accent font-medium' : model ? 'text-ink font-medium' : 'text-ink-soft'}>
                             Add Description
                         </span>
                     </div>
@@ -218,9 +218,9 @@ function ImageUpload() {
 
                     {!previewUrl ? (
                         <div className="relative group">
-                            <div className="border-2 border-dashed border-gray-300 rounded-2xl p-12 text-center hover:border-blue-400 hover:bg-blue-50/50 transition-all duration-300 cursor-pointer group-hover:scale-[1.02]">
+                            <div className="border border-dashed border-ink/30 bg-paper p-12 text-center hover:border-accent hover:bg-paper-deep transition-all duration-200 cursor-pointer">
                                 <div className="flex flex-col items-center space-y-4">
-                                    <div className="p-4 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full shadow-lg group-hover:shadow-xl transition-shadow">
+                                    <div className="p-4 bg-ink rounded-full">
                                         <CloudUpload className="w-12 h-12 text-white" />
                                     </div>
                                     <div>
@@ -228,7 +228,7 @@ function ImageUpload() {
                                         <p className="text-gray-500 mb-4">or click to browse files</p>
                                     </div>
                                     <label htmlFor='imageSelect' className="cursor-pointer">
-                                        <div className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                                        <div className="inline-flex items-center gap-2 px-6 py-3 bg-accent hover:bg-accent-deep text-white font-semibold rounded-md transition-colors duration-200">
                                             <FileImage className="w-5 h-5" />
                                             Choose File
                                         </div>
@@ -246,7 +246,7 @@ function ImageUpload() {
                         </div>
                     ) : (
                         <div className="relative group">
-                            <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-200">
+                            <div className="bg-card overflow-hidden border border-hairline rounded-md">
                                 <div className="relative">
                                     <Image
                                         src={previewUrl}
@@ -265,7 +265,7 @@ function ImageUpload() {
                                         <X className="w-4 h-4" />
                                     </button>
                                 </div>
-                                <div className="p-4 bg-green-50 border-t border-green-200">
+                                <div className="p-4 bg-paper-deep border-t border-hairline">
                                     <div className="flex items-center gap-2 text-green-700">
                                         <CheckCircle className="w-5 h-5" />
                                         <span className="font-medium">Wireframe uploaded successfully!</span>
@@ -284,12 +284,12 @@ function ImageUpload() {
                     </div>
 
                     {/* AI Model Selection */}
-                    <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+                    <div className="bg-card border border-hairline rounded-md p-6">
                         <div className="flex items-center gap-3 mb-4">
-                            <div className="p-2 bg-purple-100 rounded-lg">
-                                <Sparkles className="w-5 h-5 text-purple-600" />
+                            <div className="p-2 bg-paper-deep rounded-md">
+                                <Sparkles className="w-5 h-5 text-accent" />
                             </div>
-                            <h3 className="text-lg font-semibold text-gray-900">AI Model</h3>
+                            <h3 className="font-display text-lg font-semibold text-ink">AI Model</h3>
                         </div>
                         
                         <Select onValueChange={(value) => setModel(value)} value={model}>
@@ -321,12 +321,12 @@ function ImageUpload() {
                     </div>
 
                     {/* Description Input */}
-                    <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+                    <div className="bg-card border border-hairline rounded-md p-6">
                         <div className="flex items-center gap-3 mb-4">
-                            <div className="p-2 bg-green-100 rounded-lg">
-                                <FileImage className="w-5 h-5 text-green-600" />
+                            <div className="p-2 bg-paper-deep rounded-md">
+                                <FileImage className="w-5 h-5 text-accent" />
                             </div>
-                            <h3 className="text-lg font-semibold text-gray-900">Project Description</h3>
+                            <h3 className="font-display text-lg font-semibold text-ink">Project Description</h3>
                         </div>
                         
                         <Textarea
@@ -348,7 +348,7 @@ function ImageUpload() {
                 <Button 
                     onClick={OnConverToCodeButtonClick} 
                     disabled={loading || !file || !model || !description}
-                    className="group relative px-12 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-lg rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-lg"
+                    className="group relative px-12 py-4 bg-ink hover:bg-accent text-paper font-semibold text-lg rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     {loading ? (
                         <div className="flex items-center gap-3">

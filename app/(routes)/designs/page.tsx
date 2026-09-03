@@ -64,10 +64,10 @@ function Designs() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+            <div className="min-h-screen bg-paper">
                 {/* Loading Header */}
-                <div className="relative overflow-hidden bg-white border-b border-gray-200/60 shadow-sm">
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 to-indigo-600/5"></div>
+                <div className="border-b border-hairline bg-paper">
+                    <div className="absolute inset-0 bg-accent/5"></div>
                     <div className="relative max-w-7xl mx-auto px-6 py-8 sm:px-8">
                         <div className="animate-pulse">
                             <div className="h-8 bg-gray-200 rounded-lg w-64 mb-4"></div>
@@ -95,32 +95,31 @@ function Designs() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+        <div className="min-h-screen bg-paper">
             {/* Enhanced Header Section */}
-            <div className="relative overflow-hidden bg-white border-b border-gray-200/60 shadow-sm">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 to-indigo-600/5"></div>
-                <div className="relative max-w-7xl mx-auto px-6 py-8 sm:px-8">
+            <div className="border-b border-hairline bg-paper">
+                <div className="max-w-7xl mx-auto px-6 py-8 sm:px-8">
                     <div className="flex items-center justify-between">
                         <div>
                             <div className="flex items-center gap-3 mb-4">
-                                <div className="p-2 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl shadow-lg">
-                                    <Palette className="w-6 h-6 text-white" />
+                                <div className="p-2 bg-ink rounded-md">
+                                    <Palette className="w-6 h-6 text-paper" />
                                 </div>
                                 <div>
-                                    <h1 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">
+                                    <h1 className="font-display text-3xl md:text-4xl font-semibold text-ink tracking-tight">
                                         My Designs
                                     </h1>
-                                    <p className="text-lg text-gray-600 mt-1">
-                                        Your creative wireframes transformed into code
+                                    <p className="text-lg text-ink-soft mt-1">
+                                        Every generation, saved and searchable
                                     </p>
                                 </div>
                             </div>
                             
                             {/* Stats */}
                             <div className="flex items-center gap-6">
-                                <div className="flex items-center gap-2 px-3 py-1 bg-blue-50 rounded-full">
-                                    <Sparkles className="w-4 h-4 text-blue-600" />
-                                    <span className="text-sm font-medium text-blue-700">
+                                <div className="flex items-center gap-2 px-3 py-1 bg-paper-deep border border-hairline rounded-full">
+                                    <Sparkles className="w-4 h-4 text-accent" />
+                                    <span className="font-mono text-xs font-medium text-ink">
                                         {Array.isArray(wireframeList) ? wireframeList.length : 0} Design{Array.isArray(wireframeList) && wireframeList.length !== 1 ? 's' : ''}
                                     </span>
                                 </div>
@@ -161,7 +160,7 @@ function Designs() {
                                 placeholder="Search designs by description or model..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-10 bg-white border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                                className="pl-10 bg-card border-hairline focus:border-accent focus:ring-accent"
                             />
                         </div>
                         
@@ -190,7 +189,7 @@ function Designs() {
                             }
                         </p>
                         {!searchTerm && (
-                            <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
+                            <Button variant="gradient">
                                 Create New Design
                             </Button>
                         )}

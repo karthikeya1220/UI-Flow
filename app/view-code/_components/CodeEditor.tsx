@@ -1,66 +1,46 @@
+"use client"
 import React from 'react'
-import { Sandpack, SandpackCodeEditor, SandpackLayout, SandpackProvider } from "@codesandbox/sandpack-react";
-import Constants from '@/data/Constants';
-import { aquaBlue } from "@codesandbox/sandpack-themes";
+import { Sandpack } from '@codesandbox/sandpack-react'
+import { sandpackDark } from '@codesandbox/sandpack-themes'
 
-function CodeEditor({ codeResp, isReady }: any) {
+function CodeEditor({ codeResp, isReady }: { codeResp: string, isReady: boolean }) {
+    if (!codeResp) {
+        return (
+            <div className="flex items-center justify-center h-full text-ink-soft">
+                <p className="font-mono text-xs">waiting for code generation…</p>
+            </div>
+        )
+    }
+
+    // Clean up code: remove markdown fences that sometimes leak through
+    const cleanCode = codeResp
+        .replace(/^```(?:jsx|javascript|tsx|typescript)\s*/gm, '')
+        .replace(/```\s*$/gm, '')
+        .trim()
+
     return (
-        <div className="relative h-full">
-            {isReady ? (
-                <div style={{ height: '100%', width: '100%' }}>
-                    <Sandpack 
-                        template="react"
-                        theme={aquaBlue}
-                        options={{
-                            externalResources: ["https://cdn.tailwindcss.com"],
-                            showNavigator: true,
-                            showTabs: true,
-                            showLineNumbers: true,
-                            showInlineErrors: true,
-                            wrapContent: true,
-                            editorWidthPercentage: 50
-                        }}
-                        customSetup={{
-                            dependencies: {
-                                ...Constants.DEPENDANCY
-                            }
-                        }}
-                        files={{
-                            "/App.js": `${codeResp}`,
-                        }}
-                    />
-                </div>
-            ) : (
-                <SandpackProvider 
-                    template="react"
-                    theme={aquaBlue}
-                    files={{
-                        "/app.js": {
-                            code: `${codeResp}`,
-                            active: true
-                        }
-                    }}
-                    customSetup={{
-                        dependencies: {
-                            ...Constants.DEPENDANCY
-                        }
-                    }}
-                    options={{
-                        externalResources: ["https://cdn.tailwindcss.com"]
-                    }}
-                >
-                    <SandpackLayout style={{ height: '100%' }}>
-                        <SandpackCodeEditor 
-                            showTabs={true} 
-                            style={{ 
-                                height: '100%',
-                                fontFamily: 'JetBrains Mono, Monaco, Consolas, "Liberation Mono", "Courier New", monospace'
-                            }} 
-                        />
-                    </SandpackLayout>
-                </SandpackProvider>
-            )}
-        </div>
+        <Sandpack
+            files={{
+                "/App.js": cleanCode,
+                "/index.js": `import React from "react";\nimport { createRoot } from "react-dom/client";\nimport App from "./App";\nimport "./styles.css";\n\nconst root = createRoot(document.getElementById("root"));\nroot.render(<App />);`,
+                "/styles.css": `@tailwind base;\n@tailwind components;\n@tailwind utilities;`,
+            }}
+            template="react"
+            theme={sandpackDark}
+            options={{
+                showNavigator: true,
+                showTabs: true,
+                editorHeight: 400,
+                editorWidthPercentage: 50,
+                showLineNumbers: true,
+                wrapContent: true,
+            }}
+            customSetup={{
+                dependencies: {
+                    "lucide-react": "latest",
+                }
+            }}
+        />
     )
 }
 

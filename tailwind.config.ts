@@ -9,7 +9,18 @@ export default {
 	],
 	theme: {
 		extend: {
+			fontFamily: {
+				body: ["var(--font-body)", "system-ui", "sans-serif"],
+				display: ["var(--font-display)", "Georgia", "serif"],
+				mono: ["var(--font-mono)", "monospace"],
+			},
 			colors: {
+				paper: "#F6F5F1",
+				"paper-deep": "#EDEBE3",
+				ink: "#1A1915",
+				"ink-soft": "#6E6A5E",
+				hairline: "#D8D4C8",
+				"accent-deep": "#0F2EB8",
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				card: {
@@ -21,7 +32,7 @@ export default {
 					foreground: 'hsl(var(--popover-foreground))'
 				},
 				primary: {
-					DEFAULT: '#4f46e4',
+					DEFAULT: 'hsl(var(--primary))',
 					foreground: 'hsl(var(--primary-foreground))'
 				},
 				secondary: {

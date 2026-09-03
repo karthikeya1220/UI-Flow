@@ -3,10 +3,16 @@ import { NextRequest } from "next/server";
 import OpenAI from "openai";
 import { AppError, handleApiError, validateRequest } from "@/lib/error-handling";
 
-const openai = new OpenAI({
-    baseURL: "https://openrouter.ai/api/v1",
-    apiKey: process.env.OPENROUTER_AI_API_KEY,
-});
+let openai: OpenAI;
+function getOpenAI() {
+    if (!openai) {
+        openai = new OpenAI({
+            baseURL: "https://openrouter.ai/api/v1",
+            apiKey: process.env.OPENROUTER_AI_API_KEY,
+        });
+    }
+    return openai;
+}
 
 export const maxDuration = 300;
 
@@ -30,7 +36,7 @@ export async function POST(req: NextRequest) {
         const modelName = ModelObj?.modelName;
         console.log('Using AI model:', modelName);
 
-        const response = await openai.chat.completions.create({
+        const response = await getOpenAI().chat.completions.create({
             model: modelName ?? 'google/gemini-2.0-pro-exp-02-05:free',
             stream: true,
             max_tokens: 4000,

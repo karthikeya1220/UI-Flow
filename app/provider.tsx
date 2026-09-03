@@ -1,7 +1,7 @@
 "use client"
-import { auth } from '@/configs/firebaseConfig';
+import { getSupabaseClient } from '@/configs/supabaseConfig';
 import { AuthContext } from '@/context/AuthContext';
-import { onAuthStateChanged, User } from 'firebase/auth';
+import { User } from '@supabase/supabase-js';
 import React, { useContext, useEffect, useState } from 'react'
 
 interface AuthContextType {
@@ -18,20 +18,29 @@ function Provider({
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-            console.log('Auth state changed:', user?.email || 'No user');
-            setUser(user);
-            setLoading(false); // Set loading to false once we get the auth state
+        const supabase = getSupabaseClient();
+
+        // Get initial session
+        supabase.auth.getSession().then(({ data }) => {
+            setUser(data.session?.user ?? null);
+            setLoading(false);
         });
 
-        return () => unsubscribe(); // Cleanup
+        // Listen for auth changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+            (_event, session) => {
+                setUser(session?.user ?? null);
+                setLoading(false);
+            }
+        );
+
+        return () => subscription.unsubscribe();
     }, []);
 
-    // Show loading while checking auth state
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
-                <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+                <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-accent"></div>
             </div>
         );
     }
@@ -45,7 +54,6 @@ function Provider({
     )
 }
 
-// Custom hook to use auth
 export const useAuthContext = (): AuthContextType => {
     const context = useContext(AuthContext);
     if (!context) throw new Error("useAuth must be used within an AuthProvider");
@@ -53,4 +61,3 @@ export const useAuthContext = (): AuthContextType => {
 };
 
 export default Provider
-

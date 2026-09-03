@@ -36,7 +36,7 @@ function DashboardProvider({
         
         try {
             const result = await axios.post('/api/user', {
-                userName: user.displayName,
+                userName: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
                 userEmail: user.email
             });
             console.log('User check result:', result.data);

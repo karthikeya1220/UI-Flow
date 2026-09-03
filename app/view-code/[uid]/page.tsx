@@ -7,7 +7,6 @@ import { useParams, usePathname } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 import SelectionDetail from '../_components/SelectionDetail'
 import CodeEditor from '../_components/CodeEditor'
-import { read } from 'fs'
 
 export interface RECORD {
     id: number,
@@ -144,23 +143,22 @@ function ViewCode() {
 
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 pb-0">
+        <div className="min-h-screen bg-paper pb-0">
             <AppHeader hideSidebar={true} />
             
             {/* Enhanced Header Section */}
-            <div className="relative overflow-hidden bg-white border-b border-gray-200/60 shadow-sm">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 to-indigo-600/5"></div>
-                <div className="relative max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+            <div className="border-b border-hairline bg-paper">
+                <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <div className="flex items-center gap-3 sm:gap-4">
-                            <div className="p-2.5 sm:p-3 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl shadow-lg">
-                                <Code className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                            <div className="p-2.5 sm:p-3 bg-ink rounded-md">
+                                <Code className="w-5 h-5 sm:w-6 sm:h-6 text-paper" />
                             </div>
                             <div>
-                                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">
+                                <h1 className="font-display text-xl sm:text-2xl md:text-3xl font-semibold text-ink tracking-tight">
                                     Code Editor
                                 </h1>
-                                <p className="text-base sm:text-lg text-gray-600 mt-1">
+                                <p className="text-base sm:text-lg text-ink-soft mt-1">
                                     Generate and edit your wireframe code
                                 </p>
                             </div>
@@ -192,14 +190,14 @@ function ViewCode() {
                     {/* Main Editor Area */}
                     <div className='lg:col-span-8 xl:col-span-9 min-w-0'>
                         {loading ? (
-                            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden h-[85vh] flex flex-col">
+                            <div className="bg-card border border-hairline overflow-hidden h-[85vh] flex flex-col">
                                 <div className="relative flex-1 flex flex-col">
                                     {/* Loading Header */}
-                                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-4 sm:px-6 sm:py-5 border-b border-gray-200">
+                                    <div className="bg-paper-deep px-4 py-4 sm:px-6 sm:py-5 border-b border-hairline">
                                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="p-2 bg-white rounded-lg shadow-sm">
-                                                    <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                                                <div className="p-2 bg-paper rounded-md">
+                                                    <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-accent" />
                                                 </div>
                                                 <div>
                                                     <h3 className="font-semibold text-gray-900">AI Processing</h3>
@@ -207,7 +205,7 @@ function ViewCode() {
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-2 px-2 sm:px-3 py-2 bg-blue-100 rounded-full self-start sm:self-auto">
-                                                <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 animate-spin" />
+                                                <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 text-accent animate-spin" />
                                                 <span className="text-xs sm:text-sm font-medium text-blue-700">Processing...</span>
                                             </div>
                                         </div>
@@ -217,10 +215,10 @@ function ViewCode() {
                                     <div className="flex-1 flex items-center justify-center p-8">
                                         <div className="text-center max-w-md space-y-6">
                                             <div className="relative">
-                                                <div className="w-20 h-20 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center mx-auto shadow-lg">
+                                                <div className="w-20 h-20 bg-ink rounded-full flex items-center justify-center mx-auto">
                                                     <Loader2 className="w-10 h-10 text-white animate-spin" />
                                                 </div>
-                                                <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-indigo-600/20 rounded-full animate-ping"></div>
+                                                <div className="absolute inset-0 bg-accent/20 rounded-full animate-ping"></div>
                                             </div>
                                             <div className="space-y-4">
                                                 <h3 className="text-xl font-semibold text-gray-900">
@@ -240,13 +238,13 @@ function ViewCode() {
                                 </div>
                             </div>
                         ) : (
-                            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden h-[85vh] flex flex-col">
+                            <div className="bg-card border border-hairline overflow-hidden h-[85vh] flex flex-col">
                                 {/* Editor Header */}
-                                <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-4 py-4 sm:px-6 sm:py-5 border-b border-gray-200 flex-shrink-0">
+                                <div className="bg-paper px-4 py-4 sm:px-6 sm:py-5 border-b border-hairline flex-shrink-0">
                                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="p-2 bg-white rounded-lg shadow-sm">
-                                                <Play className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
+                                            <div className="p-2 bg-paper-deep rounded-md">
+                                                <Play className="w-4 h-4 sm:w-5 sm:h-5 text-ink" />
                                             </div>
                                             <div>
                                                 <h3 className="font-semibold text-gray-900">Live Preview</h3>
@@ -266,7 +264,7 @@ function ViewCode() {
                                                         </span>
                                                     </div>
                                                     <div className="flex items-center gap-1">
-                                                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                                                        <div className="w-2 h-2 bg-accent rounded-full"></div>
                                                         <span className="text-gray-600 font-medium text-xs sm:text-sm">
                                                             {Math.round(codeResp.length / 1024 * 10) / 10}KB
                                                         </span>
@@ -277,7 +275,7 @@ function ViewCode() {
                                                 <button 
                                                     onClick={() => GetRecordInfo(true)}
                                                     disabled={!isReady}
-                                                    className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-all duration-200 transform hover:-translate-y-0.5 shadow-sm hover:shadow-md text-sm"
+                                                    className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-ink hover:bg-accent disabled:bg-hairline disabled:cursor-not-allowed text-paper rounded-md transition-colors duration-200 text-sm"
                                                 >
                                                     <RefreshCcw className="w-3 h-3 sm:w-4 sm:h-4" />
                                                     <span className="font-medium">Regenerate</span>
@@ -288,7 +286,7 @@ function ViewCode() {
                                 </div>
                                 
                                 {/* Editor Content */}
-                                <div className="relative flex-1 min-h-0 bg-gray-50">
+                                <div className="relative flex-1 min-h-0 bg-paper">
                                     <CodeEditor codeResp={codeResp} isReady={isReady} />
                                 </div>
                             </div>

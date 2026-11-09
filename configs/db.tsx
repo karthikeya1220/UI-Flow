@@ -1,4 +1,8 @@
 import { drizzle } from 'drizzle-orm/neon-http';
+import { neonConfig } from '@neondatabase/serverless';
+
+// Ensure the driver connects directly to host /sql rather than routing to obsolete api proxy
+neonConfig.fetchEndpoint = (host: string) => `https://${host}/sql`;
 
 let dbInstance: ReturnType<typeof drizzle> | null = null;
 

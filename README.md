@@ -1,468 +1,227 @@
-# 🎨 UI Flow - AI-Powered Web Development
+# 🎨 UIFlow — Intelligent Wireframe-to-React Engine
 
-> Transform your wireframes and mockups into production-ready React code with the power of AI
+> Transform hand-drawn wireframes and UI sketches into interactive, production-grade React components in real time. Built with zero-cost AI architecture, enterprise-grade multi-tenant security, and live Sandpack execution.
 
-[![Next.js](https://img.shields.io/badge/Next.js-15.4.6-black?style=flat-square&logo=next.js)](https://nextjs.org/)
-[![React](https://img.shields.io/badge/React-19.0.0-blue?style=flat-square&logo=react)](https://reactjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-15.4.6-000000?style=flat-square&logo=next.js)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19.0.0-61DAFB?style=flat-square&logo=react)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4.1-38B2AC?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
-[![Firebase](https://img.shields.io/badge/Firebase-11.2.0-orange?style=flat-square&logo=firebase)](https://firebase.google.com/)
-
-## 🚀 Live Demo
-
-**🌐 [Try UI Flow Now →](https://ui-flow.vercel.app)**
-
-Experience the power of AI-driven wireframe-to-code conversion in action!
+[![Supabase](https://img.shields.io/badge/Supabase-Auth_%26_Storage-3ECF8E?style=flat-square&logo=supabase)](https://supabase.com/)
+[![Neon Database](https://img.shields.io/badge/Neon-PostgreSQL-00E599?style=flat-square&logo=postgresql)](https://neon.tech/)
+[![Drizzle ORM](https://img.shields.io/badge/Drizzle_ORM-0.30-C5F74F?style=flat-square)](https://orm.drizzle.team/)
+[![OpenRouter](https://img.shields.io/badge/OpenRouter-Free_AI_Cluster-6366F1?style=flat-square)](https://openrouter.ai/)
+[![Sandpack](https://img.shields.io/badge/Sandpack-Live_Compiler-151515?style=flat-square)](https://sandpack.codesandbox.io/)
 
 ---
 
-## 🎯 Problem Statement
+## ⚡ Executive Summary
 
-In modern web development, converting design wireframes and mockups into production-ready code is a time-consuming and repetitive process. Developers often spend hours manually translating visual designs into React components, writing CSS, and ensuring responsive behavior. This creates several challenges:
+**UIFlow** bridges the gap between rough design ideation and frontend implementation. By combining server-side authenticated computer vision, zero-cost large language model routing (`openrouter/free`), and an in-browser compilation sandbox (Sandpack), developers and product teams can turn wireframe photos and prompt specifications into clean, customizable TSX codebases in seconds.
 
-- ⏰ **Time-Intensive**: Manual conversion of designs to code takes significant development time
-- 🔄 **Repetitive Work**: Similar UI patterns require rewriting boilerplate code repeatedly
-- 🎨 **Design-Dev Gap**: Miscommunication between designers and developers leads to inconsistencies
-- 📱 **Responsive Complexity**: Ensuring designs work across all devices requires extensive testing
-- 🧩 **Component Consistency**: Maintaining consistent styling and structure across projects is difficult
-
-**UI Flow** solves these problems by leveraging cutting-edge AI technology to automatically generate clean, production-ready React code from wireframes and mockups, reducing development time by up to 70% while maintaining code quality and design consistency.
+### Core Value Proposition
+- **Zero-Cost Operation**: Engineered exclusively around free-tier AI routing (`openrouter/free`) and local Ollama compatibility — \$0.00 spent on subscriptions or paid tokens.
+- **Strict Tenant Isolation**: Server-enforced ownership where every wireframe record and storage object is scoped to verified Supabase Auth sessions linked with Neon PostgreSQL.
+- **Instant Browser Compilation**: Code streams directly into a sandboxed live preview environment with real-time editing and valid ZIP exports.
 
 ---
 
-## 📸 Screenshots
+## 📸 Application Interface & Visual Evidence
 
-<div align="center">
+Genuine screenshots captured directly from the live application running in headless Chromium:
 
-### Dashboard - Upload & Generate
-![Dashboard Screenshot](./public/screenshot-dashboard.png)
-*Upload wireframes, select AI models, and generate code with a beautiful, intuitive interface*
-
-### Code Editor - Review & Export
-![Code Editor Screenshot](./public/screenshot-code-editor.png)
-*Professional code editor with syntax highlighting and real-time preview*
-
-### Designs Gallery - Manage Projects
-![Designs Gallery Screenshot](./public/screenshot-designs.png)
-*Organize and access all your generated designs in one place*
-
-</div>
+| View | Screenshot | Description |
+| :--- | :--- | :--- |
+| **Landing Page (Desktop)** | ![Landing Page Desktop](./public/portfolio/landing-desktop.png) | Interactive editorial landing page featuring the live FlipStage (Sketch ⇄ TSX ⇄ Preview), pipeline walkthrough, and full-stack architecture specs. |
+| **Landing Page (Mobile)** | ![Landing Page Mobile](./public/portfolio/landing-mobile.png) | Responsive 390px mobile view with clean vertical card stacking and adaptive navigation. |
+| **Authentication Modal** | ![Authentication Modal](./public/portfolio/authentication.png) | Modal supporting Email/Password sign in, sign up with email verification notices, and password reset flows. |
+| **Password Recovery** | ![Password Recovery](./public/portfolio/reset-password-desktop.png) | Dedicated password reset screen with form validation and password visibility toggles. |
+| **Editor Security Guard** | ![Editor Security Guard](./public/portfolio/editor-unauth.png) | Tenant-isolation guard rejecting unauthenticated or cross-tenant access to `/view-code/[uid]` with HTTP 401. |
 
 ---
 
-## 📖 Overview
+UIFlow separates concerns across a modern, decoupled cloud architecture:
 
-**UI Flow** is an innovative web application that leverages cutting-edge AI technology to convert wireframes, mockups, and design images into clean, production-ready React code. Simply upload your design, describe your requirements, choose an AI model, and watch as your static designs come to life as interactive web applications.
+```mermaid
+flowchart TD
+    subgraph Client["Frontend Client (Next.js 15 App Router / React 19)"]
+        UI["Landing Page / Dashboard / Studio Workspace"]
+        AuthComp["Supabase Auth Client (SSR Sessions)"]
+        Sandbox["Sandpack In-Browser React Compiler"]
+    end
 
-### ✨ Key Features
+    subgraph Edge["API Gateway & Middleware"]
+        AuthMW["Server-side Token Verification (supabase.auth.getUser)"]
+        SignedURLGen["Short-lived Storage Signer (1 hr TTL)"]
+        AIProxy["Streaming AI Orchestrator (SSE)"]
+    end
 
-- 🤖 **Multiple AI Models**: Support for Google Gemini, Meta Llama, and Deepseek models
-- 🎨 **Smart Code Generation**: Converts wireframes to React + Tailwind CSS code
-- 📱 **Responsive Design**: Mobile-first approach with modern UI/UX
-- 🔐 **Firebase Authentication**: Secure Google sign-in integration
-- 💾 **Supabase Storage**: Reliable file storage with fallback support
-- 📊 **Project Management**: Track and manage all your generated designs
-- 🎯 **Real-time Code Preview**: Live code editor with syntax highlighting
-- ⚡ **Lightning Fast**: Optimized performance with Next.js 15
-- 🌓 **Modern Stack**: Built with the latest web technologies
+    subgraph StorageLayer["Secure Cloud Infrastructure"]
+        SupaAuth["Supabase Authentication (Email/Password & Sessions)"]
+        SupaStorage["Supabase Private Storage (wireframes bucket)"]
+        NeonDB[("Neon Serverless PostgreSQL\n(Drizzle ORM)")]
+    end
 
-## 🚀 Quick Start
+    subgraph Inference["Zero-Cost Inference Tier"]
+        OpenRouterFree["OpenRouter Free Pool\n(openrouter/free - auto-routed free LLMs)"]
+        OllamaLocal["Local Ollama Engine\n(Optional fallback: qwen / llama)"]
+    end
+
+    UI --> AuthComp
+    AuthComp <--> SupaAuth
+    UI --> AuthMW
+    AuthMW --> SupaAuth
+    AuthMW --> NeonDB
+    UI --> SignedURLGen
+    SignedURLGen --> SupaStorage
+    UI --> AIProxy
+    AIProxy --> OpenRouterFree
+    AIProxy -. Optional .-> OllamaLocal
+    AIProxy -- SSE Code Stream --> UI
+    UI --> Sandbox
+```
+
+---
+
+## 🛠️ Technical Stack & Implementation Details
+
+| Layer | Technologies | Key Architecture Decisions |
+| :--- | :--- | :--- |
+| **Framework** | Next.js 15.4 (App Router), React 19, TypeScript | Server Components for initial data fetches, Client Components for live Sandpack & streaming. |
+| **Styling & UI** | Tailwind CSS, Lucide Icons | Custom modern design system (`paper/ink` aesthetic, hairline borders, responsive 12-column grid). |
+| **Authentication** | Supabase Auth (`@supabase/ssr`) | Cookie-based SSR sessions, email/password signup with verification callbacks, password reset flow. |
+| **Application DB** | Neon PostgreSQL with Drizzle ORM | Serverless relational database. User table with atomic `supabase_id` UUID binding; tenant-isolated wireframe schemas. |
+| **Asset Storage** | Supabase Storage (`wireframes` bucket) | Private bucket with user UUID folder partitioning (`{user_uuid}/{file_name}`). Access strictly controlled via short-lived signed URLs. |
+| **AI Inference** | OpenRouter (`openrouter/free`), Ollama | Zero-cost LLM orchestration with streaming server-sent events (SSE), prompt sanitization, and fallback recovery. |
+| **Live Playground** | CodeSandbox Sandpack | Live in-browser React bundler with Tailwind CSS and Lucide React injected out-of-the-box. |
+| **Export Engine** | JSZip, FileSaver | Client-side bundler packaging multi-file React scaffolding (`package.json`, `App.tsx`, configs) into valid binary `.zip`. |
+
+---
+
+## 🔐 Security & Identity Model
+
+UIFlow enforces strict multi-tenant isolation at every application layer:
+
+1. **Zero Client Trust**: All user identifiers (`user_id`, `supabase_id`, `email`) supplied in client payloads are ignored. Identity is derived strictly server-side via `supabase.auth.getUser()` using verified session cookies.
+2. **Atomic Identity Binding**: Existing Neon user accounts are bound once to authenticated Supabase accounts upon confirmed login. Duplicate users cannot be created for identical verified emails.
+3. **Private Asset Isolation**: The Supabase Storage bucket (`wireframes`) is private. Signed URLs expire after 3600 seconds and can only be requested by the verified owner matching the storage directory prefix.
+4. **MIME & Magic Byte Validation**: Uploaded images are validated against binary magic bytes before being written to cloud storage, blocking arbitrary uploads.
+5. **No Secrets in Client Bundles**: Database connection strings, service role tokens, and AI API keys reside exclusively in server-side runtime environments.
+
+---
+
+## 🤖 Zero-Cost AI Architecture
+
+UIFlow is designed to run entirely without recurring AI costs:
+
+- **Default Provider**: `openrouter/free` via OpenRouter. This meta-model routes requests to top currently available free models (such as `meta-llama/llama-3.3-70b-instruct:free`, `google/gemini-2.0-flash-exp:free`, and `deepseek/deepseek-r1:free`).
+- **Input Strategy**: Multi-modal wireframes are complemented by structured user prompts detailing navigation, layout specifications, and UI states. When upstream free clusters operate in text-only mode, prompt specifications guarantee high-fidelity code synthesis.
+- **Local Dev Alternative**: Optional local Ollama support (`qwen2.5-coder`, `llama3.2`) for offline development or air-gapped environments without API keys.
+
+---
+
+## 🚀 Getting Started
 
 ### Prerequisites
 
-- Node.js 18+ and npm/yarn
-- Firebase project (for authentication)
-- Supabase project (for file storage)
-- Neon/PostgreSQL database (for data storage)
-- OpenRouter AI API key (for AI models)
+- **Node.js**: v18.0.0 or later (v20+ recommended)
+- **Neon PostgreSQL**: Free serverless Postgres instance ([neon.tech](https://neon.tech))
+- **Supabase Project**: Free tier account for Auth and Storage ([supabase.com](https://supabase.com))
+- **OpenRouter Key**: Free API key from [openrouter.ai](https://openrouter.ai) (no credit card or paid balance required)
 
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/karthikeya1220/UI-Flow.git
-   cd wireframe-to-code
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   # or
-   yarn install
-   ```
-
-3. **Set up environment variables**
-   
-   Create a `.env.local` file in the root directory:
-   ```env
-   # Database (Neon PostgreSQL)
-   DATABASE_URL=postgresql://username:password@host/database
-   NEXT_PUBLIC_NEON_DB_CONNECTION_STRING=your_neon_connection_string
-
-   # Firebase Authentication
-   NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key
-   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
-   NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
-   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
-   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=123456789
-   NEXT_PUBLIC_FIREBASE_APP_ID=1:123456789:web:abcdef123456
-   NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=G-ABCDEFGHIJ
-
-   # Supabase Storage
-   NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-
-   # AI Model API
-   OPENROUTER_AI_API_KEY=your_openrouter_api_key
-   ```
-
-4. **Database Setup**
-   ```bash
-   # Run database migrations
-   npm run db:push
-   # or if using Drizzle migrations
-   npm run db:migrate
-   ```
-
-5. **Start the development server**
-   ```bash
-   npm run dev
-   ```
-
-   Visit [http://localhost:3000](http://localhost:3000) to see your application running.
-
-## 🏗️ Architecture
-
-### Tech Stack
-
-- **Frontend**: Next.js 15 + React 19 + TypeScript
-- **Styling**: Tailwind CSS + Radix UI Components
-- **Authentication**: Firebase Auth (Google Sign-in)
-- **Database**: PostgreSQL (Neon) + Drizzle ORM
-- **File Storage**: Supabase Storage (with base64 fallback)
-- **AI Integration**: OpenRouter API (Gemini, Llama, Deepseek)
-- **Deployment**: Vercel (recommended)
-
-### System Architecture
-
-<div align="center">
-
-![Architecture Diagram](./public/architecture-diagram.png)
-
-*High-level system architecture showing the interaction between frontend, backend services, and external APIs*
-
-</div>
-
-The application follows a modern serverless architecture:
-
-1. **Frontend Layer**: Next.js 15 with React 19 handles the UI, routing, and client-side logic
-2. **Authentication & Storage**: Firebase manages user authentication while Supabase handles file storage
-3. **Backend Services**: Next.js API routes process requests, interact with PostgreSQL via Drizzle ORM, and communicate with AI models through OpenRouter
-4. **Deployment**: Vercel provides edge-optimized hosting with automatic CI/CD
-
-### Project Structure
-
-```
-├── app/                          # Next.js App Router
-│   ├── (routes)/                 # Protected routes
-│   │   ├── dashboard/           # Main upload interface
-│   │   │   └── _components/     # Dashboard components
-│   │   ├── designs/             # Generated designs gallery
-│   │   │   └── _components/     # Design cards & UI
-│   │   └── layout.tsx           # Protected routes layout
-│   ├── api/                     # API routes
-│   │   ├── ai-model/           # AI model integration
-│   │   ├── wireframe-to-code/  # CRUD operations
-│   │   └── user/               # User management
-│   ├── view-code/[uid]/        # Code viewer & editor
-│   │   └── _components/        # Code editor components
-│   ├── _components/            # Global components
-│   └── layout.tsx              # Root layout
-├── components/ui/               # Reusable UI components
-├── configs/                    # Configuration files
-│   ├── db.tsx                  # Database connection
-│   ├── schema.ts               # Database schema
-│   ├── firebaseConfig.tsx      # Firebase setup
-│   └── supabaseConfig.tsx      # Supabase setup
-├── lib/                        # Utility functions
-│   ├── utils.ts                # Common utilities
-│   ├── error-handling.ts       # Error handling
-│   └── supabase-storage.ts     # Storage utilities
-├── hooks/                      # Custom React hooks
-├── context/                    # React context providers
-└── data/                       # Constants and static data
-```
-
-## 🎯 Core Features
-
-### 1. **Intelligent Wireframe Processing**
-- Upload wireframes, mockups, or design images
-- AI analyzes visual elements and structure
-- Generates semantic, accessible React components
-- Maintains design consistency and responsive behavior
-
-### 2. **Multi-Model AI Support**
-- **Google Gemini 2.0**: Latest Google AI with superior code generation
-- **Meta Llama**: Open-source model for reliable results
-- **Deepseek**: Specialized model for coding tasks
-
-### 3. **Advanced Code Generation**
-- Clean, production-ready React code
-- Tailwind CSS for styling
-- Lucide icons integration
-- Responsive design patterns
-- Modern UI/UX components
-
-### 4. **Professional Code Editor**
-- Syntax highlighting with Codesandbox Sandpack
-- Real-time preview capabilities
-- Export functionality
-- Code sharing and collaboration
-
-### 5. **Project Management**
-- Personal design gallery
-- Search and filter capabilities
-- Grid and list view modes
-- Project history tracking
-
-## 🔧 Configuration
-
-### Firebase Setup
-
-1. Create a new Firebase project at [Firebase Console](https://console.firebase.google.com/)
-2. Enable Authentication with Google provider
-3. Add your domain to authorized domains
-4. Copy configuration to `.env.local`
-
-For detailed instructions, see: [`FIREBASE_SETUP.md`](./FIREBASE_SETUP.md)
-
-### Supabase Setup
-
-1. Create a new project at [Supabase](https://supabase.com/)
-2. Create a storage bucket named `wireframes`
-3. Set up appropriate storage policies
-4. Copy credentials to `.env.local`
-
-For detailed instructions, see: [`SUPABASE_SETUP.md`](./SUPABASE_SETUP.md)
-
-### Database Setup
-
-The application uses PostgreSQL with Drizzle ORM. Schema includes:
-
-- `users` - User profiles and credits
-- `wireframeToCode` - Generated projects and metadata
-
-```sql
--- Users table
-CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    credits INTEGER DEFAULT 0
-);
-
--- Wireframes table  
-CREATE TABLE wireframeToCode (
-    id SERIAL PRIMARY KEY,
-    uid VARCHAR UNIQUE,
-    imageUrl VARCHAR,
-    model VARCHAR,
-    description TEXT,
-    code JSONB,
-    createdBy VARCHAR,
-    createdAt TIMESTAMP DEFAULT NOW()
-);
-```
-
-## 🎨 Usage Guide
-
-### 1. **Upload Wireframe**
-- Navigate to the Dashboard
-- Upload your design image (PNG, JPG, WebP)
-- The image is processed and stored securely
-
-### 2. **Configure Generation**
-- Choose from available AI models
-- Write a detailed description of your requirements
-- Include specific features, styling preferences, or functionality
-
-### 3. **Generate Code**
-- Click "Generate Code" to start the AI processing
-- Monitor real-time progress with streaming updates
-- Review the generated React component
-
-### 4. **Review & Export**
-- Use the integrated code editor to review results
-- Make adjustments if needed
-- Export or share your generated code
-- Access all your projects in the Designs gallery
-
-## 📁 API Reference
-
-### Wireframe Management
-
-```typescript
-// Create new wireframe
-POST /api/wireframe-to-code
-{
-  "uid": "unique-id",
-  "description": "Project description",
-  "imageUrl": "storage-url",
-  "model": "google/gemini-2.0-flash-001",
-  "email": "user@example.com"
-}
-
-// Get user's wireframes
-GET /api/wireframe-to-code?email=user@example.com
-
-// Get specific wireframe
-GET /api/wireframe-to-code?uid=unique-id
-
-// Update generated code
-PUT /api/wireframe-to-code
-{
-  "uid": "unique-id",
-  "codeResp": { "resp": "generated-code" }
-}
-```
-
-### AI Model Integration
-
-```typescript
-// Generate code from wireframe
-POST /api/ai-model
-{
-  "model": "google/gemini-2.0-flash-001",
-  "description": "Detailed requirements",
-  "imageUrl": "wireframe-image-url"
-}
-```
-
-## 🚀 Deployment
-
-### Vercel (Recommended)
-
-1. **Connect your repository to Vercel**
-2. **Add environment variables in Vercel dashboard**
-3. **Deploy with automatic CI/CD**
+### 1. Clone & Install
 
 ```bash
-# Install Vercel CLI
-npm i -g vercel
-
-# Deploy
-vercel --prod
+git clone https://github.com/karthikeya1220/UI-Flow.git
+cd UI-Flow
+npm install
 ```
 
-### Other Platforms
+### 2. Environment Configuration
 
-The application is compatible with:
-- Netlify
-- Railway
-- Render
-- AWS Amplify
+Create a `.env.local` file in the root directory and provide your service credentials:
 
-Ensure you configure the environment variables and database connections appropriately.
+```bash
+# ==============================================================================
+# Supabase Configuration (Authentication & Private Storage)
+# ==============================================================================
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_public_key
+# Optional service role key for admin scripts
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 
-## 🔒 Security Features
+# ==============================================================================
+# Neon PostgreSQL Database (Drizzle ORM)
+# ==============================================================================
+DATABASE_URL=postgresql://user:password@ep-sample-pooler.region.aws.neon.tech/neondb?sslmode=require
+NEXT_PUBLIC_NEON_DB_CONNECTION_STRING=postgresql://user:password@ep-sample-pooler.region.aws.neon.tech/neondb?sslmode=require
 
-- **Authentication**: Secure Firebase Google Sign-in
-- **Rate Limiting**: API protection against abuse
-- **Input Validation**: Comprehensive request validation
-- **Error Handling**: Graceful error management
-- **CORS Configuration**: Proper cross-origin setup
-- **Environment Security**: Sensitive data protection
+# ==============================================================================
+# AI Inference Engine (Zero-Cost Tier)
+# ==============================================================================
+# Obtain from https://openrouter.ai/keys (zero balance required for openrouter/free)
+OPENROUTER_AI_API_KEY=sk-or-v1-your_openrouter_free_api_key
 
-## 🌟 Performance Optimizations
+# Optional: Local Ollama URL (defaults to http://localhost:11434 if unset)
+NEXT_PUBLIC_OLLAMA_BASE_URL=http://localhost:11434
+```
 
-- **Image Optimization**: Next.js automatic image optimization
-- **Code Splitting**: Automatic route-based code splitting
-- **Caching**: Intelligent caching strategies
-- **Streaming**: Real-time AI response streaming
-- **Database Indexing**: Optimized database queries
-- **CDN Integration**: Fast global content delivery
+### 3. Database Schema Push
 
-## 🤝 Contributing
+Deploy the Drizzle schema to your Neon database:
 
-We welcome contributions! Here's how to get started:
+```bash
+npx drizzle-kit push
+```
 
-1. **Fork the repository**
-2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
-3. **Make your changes** and add tests if applicable
-4. **Commit your changes**: `git commit -m 'Add amazing feature'`
-5. **Push to the branch**: `git push origin feature/amazing-feature`
-6. **Open a Pull Request**
+### 4. Run Development Server
 
-### Development Guidelines
+```bash
+npm run dev
+```
 
-- Follow TypeScript best practices
-- Use conventional commit messages
-- Add JSDoc comments for functions
-- Test your changes thoroughly
-- Update documentation as needed
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-**Firebase Authentication Errors**
-- Check API key configuration
-- Verify authorized domains
-- See [`FIREBASE_SETUP.md`](./FIREBASE_SETUP.md)
-
-**Database Connection Issues**
-- Verify DATABASE_URL format
-- Check network connectivity
-- Ensure database exists
-
-**AI Model Failures**
-- Validate OpenRouter API key
-- Check model availability
-- Monitor rate limits
-
-**Storage Upload Errors**
-- Verify Supabase configuration
-- Check bucket permissions
-- Review storage policies
-
-### Getting Help
-
-- 📚 Check existing documentation
-- 🐛 Search issues on GitHub
-- 💬 Join our Discord community
-- 📧 Email support: [support@ui-flow.com]
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- [Next.js](https://nextjs.org/) - The React Framework
-- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework  
-- [Firebase](https://firebase.google.com/) - Authentication and services
-- [Supabase](https://supabase.com/) - Open source Firebase alternative
-- [OpenRouter](https://openrouter.ai/) - AI model API gateway
-- [Radix UI](https://radix-ui.com/) - Accessible UI components
-- [Lucide](https://lucide.dev/) - Beautiful icons library
-
-## 🔮 Roadmap
-
-- [ ] Support for Figma plugin integration
-- [ ] Additional AI models (Claude, GPT-4)
-- [ ] Advanced code customization options
-- [ ] Team collaboration features
-- [ ] Version control for generated code
-- [ ] Mobile app companion
-- [ ] Design system integration
-- [ ] A/B testing for generated layouts
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-<div align="center">
+## 🧪 Testing & Verification
 
-**Built with ❤️ by [Karthikeya](https://github.com/karthikeya1220)**
+The test suite runs with Vitest and validates end-to-end security, tenant isolation, and AI route guards without external network mocks:
 
-[🌐 Live Demo](https://ui-flow.vercel.app) • [📖 Documentation](./docs) • [🐛 Report Bug](https://github.com/karthikeya1220/UI-Flow/issues) • [✨ Request Feature](https://github.com/karthikeya1220/UI-Flow/issues)
+```bash
+# Run complete test suite (24 passing unit & integration tests)
+npx vitest run
 
-</div>
+# Run TypeScript type verification
+npx tsc --noEmit
+
+# Run production build
+npm run build
+```
+
+### Test Coverage Highlights
+- `tests/m06-email-auth.test.ts`: Supabase email authentication, password validation, and atomic Neon user binding.
+- `tests/m06-ownership.test.ts`: Server-side ownership verification, tenant data leak prevention, unauthorized access rejection (401/403).
+- `tests/m07-workflow.test.ts`: Project creation lifecycle, wireframe image signed URLs, real ZIP file scaffold generation.
+- `tests/m10-free-architecture.test.ts`: Zero-cost model enforcement, fallback handling, input validation, and rate limit resilience.
+
+---
+
+## 📱 Responsive & Accessibility Standards
+
+UIFlow adheres to modern product engineering standards:
+- **Responsive Layouts**: Tested across mobile (360px, 390px iPhone), tablet (768px iPad), laptop (1024px), and desktop (1440px+).
+- **Design Tokens**: Standardized CSS variables for warm paper backgrounds (`#F6F5F1`), crisp typography (`#1A1915`), hairline borders, and distinct interactive states.
+- **Accessibility (a11y)**: Semantic HTML (`<main>`, `<nav>`, `<header>`, `<article>`), high contrast labels, keyboard navigation with visible focus rings, and explicit image alternative text.
+
+---
+
+## ⚠️ Known Limitations & Notes
+
+- **Upstream Vision Routing**: The `openrouter/free` meta-endpoint aggregates community free models. While vision models are included, model availability fluctuates upstream. Providing clear textual descriptions alongside wireframe images guarantees the highest fidelity generation.
+- **Sandpack Dependencies**: Live preview compiles standard React 19 + Tailwind CSS + Lucide React. Heavy third-party native libraries requiring WebAssembly or native compilation must be installed after ZIP export.
+
+---
+
+## 📄 License
+
+Distributed under the MIT License. See `LICENSE` for details.

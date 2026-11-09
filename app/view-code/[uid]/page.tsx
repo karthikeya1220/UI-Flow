@@ -2,8 +2,8 @@
 import AppHeader from '@/app/_components/AppHeader'
 import Constants from '@/data/Constants'
 import axios from 'axios'
-import { Loader2, LoaderCircle, Code, Sparkles, Eye, Play, RefreshCcw } from 'lucide-react'
-import { useParams, usePathname } from 'next/navigation'
+import { Loader2, Code, Sparkles, Eye, Play, RefreshCcw, AlertTriangle } from 'lucide-react'
+import { useParams } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 import SelectionDetail from '../_components/SelectionDetail'
 import CodeEditor from '../_components/CodeEditor'
@@ -19,28 +19,28 @@ export interface RECORD {
 }
 
 function ViewCode() {
-
     const { uid } = useParams();
     const [loading, setLoading] = useState(false);
     const [codeResp, setCodeResp] = useState('');
-    const [record, setRecord] = useState<RECORD | null>();
+    const [record, setRecord] = useState<RECORD | null>(null);
     const [isReady, setIsReady] = useState(false);
-    // const [isExistingCode,setIsExistingCode]=useState();
-    useEffect(() => {
-        if (typeof window !== undefined) {
-            uid && GetRecordInfo();
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+    useEffect(() => {
+        if (typeof window !== 'undefined' && uid) {
+            GetRecordInfo();
         }
     }, [uid])
 
     const GetRecordInfo = async (regen = false) => {
         console.log("Fetching record info for UID:", uid)
         setIsReady(false);
+        setErrorMsg(null);
         setCodeResp('');
-        setLoading(true)
+        setLoading(true);
 
         try {
-            const result = await axios.get('/api/wireframe-to-code?uid=' + uid)
+            const result = await axios.get('/api/wireframe-to-code?uid=' + uid);
             const resp = result?.data;
             
             if (resp?.success && resp?.data) {
@@ -55,98 +55,97 @@ function ViewCode() {
                 }
             } else {
                 console.error("Invalid response format:", resp);
+                setErrorMsg("Project record not found or inaccessible.");
                 setLoading(false);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error fetching record info:", error);
+            setErrorMsg(error?.response?.data?.error || "Failed to load project record.");
             setLoading(false);
         }
     }
 
-    const GenerateCode = async (record: RECORD) => {
-        setLoading(true)
-        const res = await fetch('/api/ai-model', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                description: record?.description + ":" + Constants.PROMPT,
-                model: record.model,
-                imageUrl: record?.imageUrl
-            })
-        });
+    const GenerateCode = async (currentRecord: RECORD) => {
+        setLoading(true);
+        setErrorMsg(null);
 
-        if (!res.body) return;
-        setLoading(false);
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder();
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            const text = (decoder.decode(value)).replace('```jsx', '').replace('```javascript', '').replace('javascript', '').replace('jsx', '').replace('```', '');
-            setCodeResp((prev) => prev + text);
-            console.log(text);
-
-        }
-
-        setIsReady(true);
-        UpdateCodeToDb();
-    }
-
-    useEffect(() => {
-        if (codeResp !== '' && record?.uid && isReady && record?.code == null) {
-            UpdateCodeToDb();
-        }
-    }, [codeResp, record, isReady])
-
-
-    const UpdateCodeToDb = async () => {
         try {
-            // Validate required data before making the API call
-            if (!record?.uid) {
-                console.error('No record UID available for updating code');
-                return;
-            }
-
-            if (!codeResp || codeResp.trim() === '') {
-                console.error('No code response available for updating');
-                return;
-            }
-
-            console.log('Updating code to DB for UID:', record.uid);
-            console.log('Code length:', codeResp.length);
-
-            const result = await axios.put('/api/wireframe-to-code', {
-                uid: record.uid,
-                codeResp: { resp: codeResp }
+            const res = await fetch('/api/ai-model', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    description: currentRecord?.description + ":" + Constants.PROMPT,
+                    model: currentRecord.model,
+                    imageUrl: currentRecord?.imageUrl
+                })
             });
 
-            console.log('Code update successful:', result.data);
-        } catch (error) {
-            console.error('Error updating code to database:', error);
-            
-            // Handle axios errors specifically
-            if (error && typeof error === 'object' && 'response' in error) {
-                const axiosError = error as any;
-                const status = axiosError.response?.status;
-                const errorData = axiosError.response?.data;
-                
-                console.error('API Error Details:', {
-                    status,
-                    error: errorData?.error || 'Unknown error',
-                    data: errorData
-                });
+            if (!res.body) {
+                setErrorMsg('No response stream returned by server.');
+                setLoading(false);
+                return;
             }
+
+            setLoading(false);
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder();
+            let accumulated = '';
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const text = decoder.decode(value);
+                accumulated += text;
+                
+                // Clean markdown fences on the fly
+                const cleaned = accumulated
+                    .replace(/```jsx/g, '')
+                    .replace(/```javascript/g, '')
+                    .replace(/```tsx/g, '')
+                    .replace(/```typescript/g, '')
+                    .replace(/```/g, '');
+
+                setCodeResp(cleaned);
+            }
+
+            // Check if returned stream is an error message
+            if (accumulated.trim().startsWith('// Error:')) {
+                setErrorMsg(accumulated.trim().replace('// Error:', '').trim());
+                setIsReady(false);
+            } else {
+                setIsReady(true);
+                UpdateCodeToDb(currentRecord.uid, accumulated);
+            }
+
+        } catch (err: any) {
+            console.error('Generation error:', err);
+            setErrorMsg(err?.message || 'Code generation failed.');
+            setLoading(false);
         }
     }
 
+    const UpdateCodeToDb = async (targetUid?: string, codeText?: string) => {
+        const uidToUpdate = targetUid || record?.uid;
+        const codeToSave = codeText || codeResp;
 
+        try {
+            if (!uidToUpdate || !codeToSave || codeToSave.trim() === '') return;
+
+            await axios.put('/api/wireframe-to-code', {
+                uid: uidToUpdate,
+                codeResp: { resp: codeToSave }
+            });
+        } catch (error) {
+            console.error('Error updating code to database:', error);
+        }
+    }
 
     return (
         <div className="min-h-screen bg-paper pb-0">
             <AppHeader hideSidebar={true} />
             
-            {/* Enhanced Header Section */}
+            {/* Header Section */}
             <div className="border-b border-hairline bg-paper">
                 <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -159,16 +158,34 @@ function ViewCode() {
                                     Code Editor
                                 </h1>
                                 <p className="text-base sm:text-lg text-ink-soft mt-1">
-                                    Generate and edit your wireframe code
+                                    Zero-cost AI wireframe & interface generator
                                 </p>
                             </div>
                         </div>
-                        {isReady && (
-                            <div className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-green-50 rounded-full border border-green-200 self-start sm:self-auto">
-                                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                                <span className="text-sm font-medium text-green-700">Ready</span>
-                            </div>
-                        )}
+
+                        {/* Status Pills */}
+                        <div className="flex items-center gap-3">
+                            {loading && (
+                                <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full border border-blue-200 text-xs font-mono">
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                    <span>Generating...</span>
+                                </div>
+                            )}
+
+                            {errorMsg && (
+                                <div className="flex items-center gap-2 px-3 py-1.5 bg-red-50 text-red-700 rounded-full border border-red-200 text-xs font-mono">
+                                    <AlertTriangle className="w-3.5 h-3.5" />
+                                    <span>Generation Failed</span>
+                                </div>
+                            )}
+
+                            {isReady && !errorMsg && (
+                                <div className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-green-50 rounded-full border border-green-200 self-start sm:self-auto">
+                                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                    <span className="text-sm font-medium text-green-700">Code Ready</span>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -192,26 +209,18 @@ function ViewCode() {
                         {loading ? (
                             <div className="bg-card border border-hairline overflow-hidden h-[85vh] flex flex-col">
                                 <div className="relative flex-1 flex flex-col">
-                                    {/* Loading Header */}
                                     <div className="bg-paper-deep px-4 py-4 sm:px-6 sm:py-5 border-b border-hairline">
-                                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="p-2 bg-paper rounded-md">
-                                                    <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-accent" />
-                                                </div>
-                                                <div>
-                                                    <h3 className="font-semibold text-gray-900">AI Processing</h3>
-                                                    <p className="text-sm text-gray-600">Converting wireframe to code</p>
-                                                </div>
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-2 bg-paper rounded-md">
+                                                <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-accent" />
                                             </div>
-                                            <div className="flex items-center gap-2 px-2 sm:px-3 py-2 bg-blue-100 rounded-full self-start sm:self-auto">
-                                                <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 text-accent animate-spin" />
-                                                <span className="text-xs sm:text-sm font-medium text-blue-700">Processing...</span>
+                                            <div>
+                                                <h3 className="font-semibold text-gray-900">AI Code Generation in Progress</h3>
+                                                <p className="text-sm text-gray-600">Streaming React code from zero-cost model...</p>
                                             </div>
                                         </div>
                                     </div>
                                     
-                                    {/* Loading Content */}
                                     <div className="flex-1 flex items-center justify-center p-8">
                                         <div className="text-center max-w-md space-y-6">
                                             <div className="relative">
@@ -222,20 +231,29 @@ function ViewCode() {
                                             </div>
                                             <div className="space-y-4">
                                                 <h3 className="text-xl font-semibold text-gray-900">
-                                                    Analyzing Wireframe
+                                                    Synthesizing Components
                                                 </h3>
-                                                <p className="text-gray-600 leading-relaxed">
-                                                    Our AI is converting your wireframe into clean, production-ready code. 
-                                                    This usually takes 10-30 seconds.
+                                                <p className="text-gray-600 leading-relaxed text-sm">
+                                                    Converting wireframe specifications into clean React + Tailwind CSS code.
                                                 </p>
-                                                <div className="flex items-center justify-center gap-2 text-sm text-gray-500 mt-6">
-                                                    <Eye className="w-4 h-4" />
-                                                    <span>Processing visual elements...</span>
-                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                        ) : errorMsg ? (
+                            <div className="bg-card border border-red-200 overflow-hidden h-[85vh] flex flex-col justify-center items-center p-8 text-center">
+                                <div className="p-4 bg-red-100 rounded-full mb-4">
+                                    <AlertTriangle className="w-8 h-8 text-red-600" />
+                                </div>
+                                <h3 className="text-xl font-semibold text-gray-900 mb-2">Generation Failed</h3>
+                                <p className="text-gray-600 max-w-md mb-6 text-sm">{errorMsg}</p>
+                                <button
+                                    onClick={() => GetRecordInfo(true)}
+                                    className="px-6 py-2.5 bg-ink hover:bg-accent text-paper text-sm font-medium rounded-md transition-colors"
+                                >
+                                    Retry Generation
+                                </button>
                             </div>
                         ) : (
                             <div className="bg-card border border-hairline overflow-hidden h-[85vh] flex flex-col">
@@ -247,13 +265,13 @@ function ViewCode() {
                                                 <Play className="w-4 h-4 sm:w-5 sm:h-5 text-ink" />
                                             </div>
                                             <div>
-                                                <h3 className="font-semibold text-gray-900">Live Preview</h3>
-                                                <p className="text-sm text-gray-600">Interactive code editor</p>
+                                                <h3 className="font-semibold text-gray-900">Live Preview & Sandpack</h3>
+                                                <p className="text-sm text-gray-600">Zero-cost interactive environment</p>
                                             </div>
                                         </div>
                                         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                                             <div className="px-2 sm:px-3 py-1 bg-gray-200 rounded-full text-xs font-mono text-gray-600 font-medium">
-                                                React
+                                                React JSX
                                             </div>
                                             {codeResp && (
                                                 <div className="flex items-center gap-3 sm:gap-4 text-sm">

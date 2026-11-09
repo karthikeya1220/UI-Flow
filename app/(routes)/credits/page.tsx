@@ -31,8 +31,8 @@ function Credits() {
         setLoading(true);
         try {
             const [userResult, designsResult] = await Promise.all([
-                axios.get('/api/user?email=' + user?.email),
-                axios.get('/api/wireframe-to-code?email=' + user?.email)
+                axios.get('/api/user'),
+                axios.get('/api/wireframe-to-code')
             ]);
             setUserData(userResult.data?.data);
             setUsageCount(designsResult.data?.count || 0);

@@ -1,7 +1,7 @@
 "use client"
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { CloudUpload, Loader2Icon, WandSparkles, X, CheckCircle, FileImage, ArrowRight, Sparkles } from 'lucide-react'
+import { CloudUpload, Loader2Icon, WandSparkles, X, CheckCircle, FileImage, ArrowRight, Sparkles, AlertCircle, Info } from 'lucide-react'
 import Image from 'next/image'
 //@ts-ignore
 import uuid4 from "uuid4";
@@ -15,303 +15,234 @@ import {
 } from "@/components/ui/select"
 import { uploadFileToSupabase } from '@/lib/supabase-storage'
 import axios from 'axios'
-import { uuid } from 'drizzle-orm/pg-core'
 import { useAuthContext } from '@/app/provider'
 import { useRouter } from 'next/navigation'
 import Constants from '@/data/Constants'
 import { toast } from 'sonner'
-function ImageUpload() {
 
+function ImageUpload() {
     const [previewUrl, setPreviewUrl] = useState<string | null>(null)
     const [file, setFile] = useState<any>();
-    const [model, setModel] = useState<string>();
-    const [description, setDescription] = useState<string>();
+    const [model, setModel] = useState<string>('OpenRouter Free (Default)');
+    const [description, setDescription] = useState<string>('');
     const { user } = useAuthContext();
     const router = useRouter();
     const [loading, setLoading] = useState(false);
+    const [dragActive, setDragActive] = useState(false);
+
+    const handleFile = (selectedFile: File) => {
+        if (!selectedFile.type.startsWith('image/')) {
+            toast.error('Please upload an image file (PNG or JPEG)');
+            return;
+        }
+        const imageUrl = URL.createObjectURL(selectedFile);
+        setFile(selectedFile);
+        setPreviewUrl(imageUrl);
+    };
 
     const OnImageSelect = (event: ChangeEvent<HTMLInputElement>) => {
         const files = event.target.files;
-        if (files) {
-            console.log(files[0])
-            const imageUrl = URL.createObjectURL(files[0]);
-            setFile(files[0]);
-            setPreviewUrl(imageUrl);
+        if (files && files[0]) {
+            handleFile(files[0]);
         }
-    }
+    };
+
+    const handleDrag = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.type === "dragenter" || e.type === "dragover") {
+            setDragActive(true);
+        } else if (e.type === "dragleave") {
+            setDragActive(false);
+        }
+    };
+
+    const handleDrop = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragActive(false);
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            handleFile(e.dataTransfer.files[0]);
+        }
+    };
 
     const OnConverToCodeButtonClick = async () => {
-        if (!file || !model || !description) {
-            console.log("Select All Field");
-            toast.error('Please fill in all fields: image, model, and description');
+        if (!file || !model || !description.trim()) {
+            toast.error('Please upload an image, select a model, and provide a description');
             return;
         }
         if (!user?.email) {
             toast.error('Please log in to continue');
             return;
         }
+
         setLoading(true);
         try {
-            // Convert image to base64 as fallback if Supabase Storage fails
-            const toBase64 = (file: File): Promise<string> => {
-                return new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.readAsDataURL(file);
-                    reader.onload = () => resolve(reader.result as string);
-                    reader.onerror = error => reject(error);
-                });
-            };
-
-            let imageUrl = '';
+            // Upload image to secure private Supabase Storage
+            const uploadResult = await uploadFileToSupabase(file);
             
-            try {
-                // Try Supabase Storage first
-                const fileName = Date.now() + '.png';
-                const uploadResult = await uploadFileToSupabase(file, fileName);
-                
-                if (uploadResult.error) {
-                    throw new Error(uploadResult.error);
-                }
-                
-                imageUrl = uploadResult.url || '';
-                console.log("Image uploaded to Supabase Storage:", imageUrl);
-            } catch (storageError) {
-                console.warn("Supabase Storage failed, using base64 fallback:", storageError);
-                // Fallback to base64 encoding
-                imageUrl = await toBase64(file);
-                toast.info('Using local image processing (Supabase Storage unavailable)');
-            }
-
-            const uid = uuid4();
-            console.log(uid);
-            // Save Info To Database
-            const result = await axios.post('/api/wireframe-to-code', {
-                uid: uid,
-                description: description,
-                imageUrl: imageUrl,
-                model: model,
-                email: user?.email
-            });
-            
-            console.log('API Response:', result.data);
-            
-            if (result.data?.error) {
-                console.log("Not Enough credits");
-                toast.error('Not Enough Credits!');
+            if (uploadResult.error || !uploadResult.url) {
+                toast.error(uploadResult.error || 'Failed to upload wireframe');
                 setLoading(false);
                 return;
             }
             
-            if (result.data?.success) {
-                toast.success('Wireframe uploaded successfully! Redirecting...');
-                router.push('/view-code/' + uid);
-            } else {
-                toast.error('Failed to process wireframe. Please try again.');
+            const imageUrl = uploadResult.url;
+            const uid = uuid4();
+
+            // Save record to Neon PostgreSQL
+            const result = await axios.post('/api/wireframe-to-code', {
+                uid: uid,
+                description: description.trim(),
+                imageUrl: imageUrl,
+                model: model
+            });
+            
+            if (result.data?.error) {
+                toast.error(result.data.error || 'Failed to initialize project');
                 setLoading(false);
+                return;
             }
-        } catch (error) {
-            console.error('Error uploading wireframe:', error);
-            
-            // Handle axios errors specifically
-            if (error && typeof error === 'object' && 'response' in error) {
-                const axiosError = error as any;
-                const status = axiosError.response?.status;
-                const errorData = axiosError.response?.data;
-                
-                switch (status) {
-                    case 402:
-                        toast.error('Insufficient credits! Please purchase more credits to continue.');
-                        break;
-                    case 404:
-                        toast.error('User not found. Please sign in again.');
-                        break;
-                    case 400:
-                        toast.error(errorData?.error || 'Invalid request. Please check all fields.');
-                        break;
-                    case 429:
-                        toast.error('Too many requests. Please wait a moment before trying again.');
-                        break;
-                    case 500:
-                        toast.error('Server error. Please try again later.');
-                        break;
-                    case 503:
-                        toast.error('Service temporarily unavailable. Please try again later.');
-                        break;
-                    default:
-                        toast.error(errorData?.error || 'Failed to upload wireframe. Please try again.');
-                }
-            } else if (error instanceof Error) {
-                // Handle other types of errors
-                if (error.message.includes('storage')) {
-                    toast.error('Supabase Storage error. Please check your Supabase configuration.');
-                } else if (error.message.includes('auth')) {
-                    toast.error('Authentication error. Please sign in again.');
-                } else if (error.message.includes('network')) {
-                    toast.error('Network error. Please check your internet connection.');
-                } else {
-                    toast.error(`Upload failed: ${error.message}`);
-                }
-            } else {
-                toast.error('Failed to upload wireframe. Please try again.');
-            }
-            
+
+            toast.success('Project created! Initializing code generation...');
+            router.push('/view-code/' + uid);
+
+        } catch (error: any) {
+            console.error('Project creation error:', error);
+            toast.error(error?.response?.data?.error || 'Failed to create wireframe project');
             setLoading(false);
         }
-    }
+    };
 
     return (
-        <div className="space-y-8">
-            {/* Progress Steps */}
-            <div className="flex items-center justify-center">
-                <div className="flex items-center space-x-4">
-                    <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors ${
-                        previewUrl ? 'bg-accent border-accent text-white' : 'bg-ink border-ink text-paper'
-                    }`}>
-                        {previewUrl ? <CheckCircle className="w-5 h-5" /> : <span className="text-sm font-semibold">1</span>}
-                    </div>
-                    <div className="h-px w-16 bg-hairline"></div>
-                    <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors ${
-                        model ? 'bg-accent border-accent text-white' : previewUrl ? 'bg-ink border-ink text-paper' : 'bg-paper-deep border-hairline text-ink-soft'
-                    }`}>
-                        {model ? <CheckCircle className="w-5 h-5" /> : <span className="text-sm font-semibold">2</span>}
-                    </div>
-                    <div className="h-px w-16 bg-hairline"></div>
-                    <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors ${
-                        description ? 'bg-accent border-accent text-white' : model ? 'bg-ink border-ink text-paper' : 'bg-paper-deep border-hairline text-ink-soft'
-                    }`}>
-                        {description ? <CheckCircle className="w-5 h-5" /> : <span className="text-sm font-semibold">3</span>}
-                    </div>
-                </div>
-            </div>
-
-            {/* Step Labels */}
-            <div className="flex items-center justify-center">
-                <div className="flex items-center space-x-4 text-sm text-gray-600">
-                    <div className="w-24 text-center">
-                        <span className={previewUrl ? 'text-accent font-medium' : 'text-ink font-medium'}>
-                            Upload Image
-                        </span>
-                    </div>
-                    <div className="w-16"></div>
-                    <div className="w-24 text-center">
-                        <span className={model ? 'text-accent font-medium' : previewUrl ? 'text-ink font-medium' : 'text-ink-soft'}>
-                            Select Model
-                        </span>
-                    </div>
-                    <div className="w-16"></div>
-                    <div className="w-24 text-center">
-                        <span className={description ? 'text-accent font-medium' : model ? 'text-ink font-medium' : 'text-ink-soft'}>
-                            Add Description
-                        </span>
-                    </div>
+        <div className="max-w-6xl mx-auto space-y-8">
+            {/* Informational Zero-Cost AI Banner */}
+            <div className="bg-paper-deep/60 border border-hairline rounded-lg p-4 flex items-start gap-3">
+                <Info className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+                <div className="text-xs text-ink-soft leading-relaxed">
+                    <span className="font-semibold text-ink">Zero-Cost AI Architecture: </span>
+                    UIFlow routes code synthesis through OpenRouter’s free community models. Upstream availability can fluctuate; if screenshot parsing is not supported by the active free provider, UIFlow will cleanly synthesize your component using your detailed text description.
                 </div>
             </div>
 
             {/* Main Content Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Image Upload Section */}
-                <div className="space-y-6">
-                    <div className="text-center">
-                        <h2 className="text-2xl font-bold text-gray-900 mb-2">Upload Your Wireframe</h2>
-                        <p className="text-gray-600">Support for JPG, PNG, and other common formats</p>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                {/* Image Upload Area */}
+                <div className="space-y-4">
+                    <div>
+                        <h2 className="font-display text-xl font-semibold text-ink">1. Upload Wireframe</h2>
+                        <p className="text-xs text-ink-soft mt-0.5">PNG, JPG, or WEBP sketches and screenshots</p>
                     </div>
 
                     {!previewUrl ? (
-                        <div className="relative group">
-                            <div className="border border-dashed border-ink/30 bg-paper p-12 text-center hover:border-accent hover:bg-paper-deep transition-all duration-200 cursor-pointer">
-                                <div className="flex flex-col items-center space-y-4">
-                                    <div className="p-4 bg-ink rounded-full">
-                                        <CloudUpload className="w-12 h-12 text-white" />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-xl font-semibold text-gray-900 mb-2">Drop your wireframe here</h3>
-                                        <p className="text-gray-500 mb-4">or click to browse files</p>
-                                    </div>
-                                    <label htmlFor='imageSelect' className="cursor-pointer">
-                                        <div className="inline-flex items-center gap-2 px-6 py-3 bg-accent hover:bg-accent-deep text-white font-semibold rounded-md transition-colors duration-200">
-                                            <FileImage className="w-5 h-5" />
-                                            Choose File
-                                        </div>
-                                    </label>
+                        <div
+                            onDragEnter={handleDrag}
+                            onDragLeave={handleDrag}
+                            onDragOver={handleDrag}
+                            onDrop={handleDrop}
+                            className={`border-2 border-dashed rounded-xl p-8 text-center transition-all cursor-pointer ${
+                                dragActive ? "border-accent bg-accent/5" : "border-hairline bg-card hover:border-ink/40 hover:bg-paper-deep/40"
+                            }`}
+                        >
+                            <div className="flex flex-col items-center space-y-3">
+                                <div className="p-3 bg-paper-deep rounded-full border border-hairline">
+                                    <CloudUpload className="w-8 h-8 text-accent" />
                                 </div>
+                                <div>
+                                    <h3 className="font-semibold text-sm text-ink mb-1">Drag and drop wireframe here</h3>
+                                    <p className="text-xs text-ink-soft">or click to browse files from your computer</p>
+                                </div>
+                                <label htmlFor="imageSelect" className="cursor-pointer pt-2">
+                                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-ink hover:bg-accent text-paper font-mono text-xs font-medium rounded-md transition-colors shadow-sm">
+                                        <FileImage className="w-4 h-4" />
+                                        <span>Select Image File</span>
+                                    </div>
+                                </label>
                             </div>
                             <input
                                 type="file"
-                                id='imageSelect'
-                                className='hidden'
+                                id="imageSelect"
+                                className="hidden"
                                 multiple={false}
                                 accept="image/*"
                                 onChange={OnImageSelect}
                             />
                         </div>
                     ) : (
-                        <div className="relative group">
-                            <div className="bg-card overflow-hidden border border-hairline rounded-md">
-                                <div className="relative">
-                                    <Image
-                                        src={previewUrl}
-                                        alt='Wireframe preview'
-                                        width={500}
-                                        height={400}
-                                        className='w-full h-80 object-contain bg-gray-50'
-                                    />
-                                    <button
-                                        onClick={() => {
-                                            setPreviewUrl(null);
-                                            setFile(null);
-                                        }}
-                                        className="absolute top-3 right-3 p-2 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-lg transition-colors"
-                                    >
-                                        <X className="w-4 h-4" />
-                                    </button>
+                        <div className="bg-card border border-hairline rounded-xl overflow-hidden shadow-sm">
+                            <div className="relative bg-paper-deep/40 p-2">
+                                <Image
+                                    src={previewUrl}
+                                    alt="Wireframe preview"
+                                    width={500}
+                                    height={380}
+                                    className="w-full h-72 object-contain rounded"
+                                />
+                                <button
+                                    onClick={() => {
+                                        setPreviewUrl(null);
+                                        setFile(null);
+                                    }}
+                                    className="absolute top-4 right-4 p-1.5 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-md transition-colors"
+                                    aria-label="Remove image"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+                            <div className="p-3 bg-paper border-t border-hairline flex items-center justify-between text-xs">
+                                <div className="flex items-center gap-2 text-green-700 font-medium">
+                                    <CheckCircle className="w-4 h-4" />
+                                    <span>Wireframe loaded & ready</span>
                                 </div>
-                                <div className="p-4 bg-paper-deep border-t border-hairline">
-                                    <div className="flex items-center gap-2 text-green-700">
-                                        <CheckCircle className="w-5 h-5" />
-                                        <span className="font-medium">Wireframe uploaded successfully!</span>
-                                    </div>
-                                </div>
+                                <span className="font-mono text-[11px] text-ink-soft">
+                                    {file?.name?.slice(0, 24)}...
+                                </span>
                             </div>
                         </div>
                     )}
                 </div>
 
-                {/* Configuration Section */}
+                {/* Configuration Area */}
                 <div className="space-y-6">
-                    <div className="text-center lg:text-left">
-                        <h2 className="text-2xl font-bold text-gray-900 mb-2">Configuration</h2>
-                        <p className="text-gray-600">Choose your AI model and describe your requirements</p>
+                    <div>
+                        <h2 className="font-display text-xl font-semibold text-ink">2. Configure Specification</h2>
+                        <p className="text-xs text-ink-soft mt-0.5">Select your zero-cost model and describe the UI goals</p>
                     </div>
 
                     {/* AI Model Selection */}
-                    <div className="bg-card border border-hairline rounded-md p-6">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="p-2 bg-paper-deep rounded-md">
-                                <Sparkles className="w-5 h-5 text-accent" />
-                            </div>
-                            <h3 className="font-display text-lg font-semibold text-ink">AI Model</h3>
-                        </div>
+                    <div className="bg-card border border-hairline rounded-xl p-5 space-y-3">
+                        <label className="font-mono text-xs font-bold text-ink uppercase flex items-center gap-2">
+                            <Sparkles className="w-3.5 h-3.5 text-accent" />
+                            <span>AI Generation Model</span>
+                        </label>
                         
                         <Select onValueChange={(value) => setModel(value)} value={model}>
-                            <SelectTrigger className="w-full h-12 text-left bg-gray-50 border-gray-200 hover:bg-gray-100 transition-colors">
-                                <SelectValue placeholder="Choose your preferred AI model" />
+                            <SelectTrigger className="w-full h-12 bg-white border-hairline text-left focus:ring-accent">
+                                <SelectValue placeholder="Choose AI model" />
                             </SelectTrigger>
                             <SelectContent>
-                                {Constants?.AiModelList.map((modelItem, index) => (
-                                    <SelectItem value={modelItem.name} key={index} className="py-3">
-                                        <div className='flex items-center gap-3'>
-                                            <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+                                {Constants?.AiModelList.filter((m: any) => m.isUserFacing !== false).map((modelItem: any, index) => (
+                                    <SelectItem value={modelItem.name} key={index} className="py-2.5">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-7 h-7 rounded-full bg-paper-deep flex items-center justify-center flex-shrink-0">
                                                 <Image 
                                                     src={modelItem.icon} 
                                                     alt={modelItem.name} 
-                                                    width={24} 
-                                                    height={24}
-                                                    className="w-6 h-6 object-contain"
+                                                    width={20} 
+                                                    height={20}
+                                                    className="w-5 h-5 object-contain"
                                                 />
                                             </div>
-                                            <div>
-                                                <div className="font-medium text-gray-900">{modelItem.name}</div>
-                                                <div className="text-xs text-gray-500">{modelItem.modelName}</div>
+                                            <div className="flex-1 text-left">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-medium text-ink text-sm">{modelItem.name}</span>
+                                                    {modelItem.badge && (
+                                                        <span className="px-1.5 py-0.2 text-[9px] uppercase font-mono font-bold tracking-wider bg-accent/10 text-accent rounded">
+                                                            {modelItem.badge}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <p className="text-[11px] text-ink-soft">{modelItem.description}</p>
                                             </div>
                                         </div>
                                     </SelectItem>
@@ -320,63 +251,51 @@ function ImageUpload() {
                         </Select>
                     </div>
 
-                    {/* Description Input */}
-                    <div className="bg-card border border-hairline rounded-md p-6">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="p-2 bg-paper-deep rounded-md">
-                                <FileImage className="w-5 h-5 text-accent" />
-                            </div>
-                            <h3 className="font-display text-lg font-semibold text-ink">Project Description</h3>
+                    {/* Description Area */}
+                    <div className="bg-card border border-hairline rounded-xl p-5 space-y-3">
+                        <div className="flex items-center justify-between">
+                            <label className="font-mono text-xs font-bold text-ink uppercase">
+                                UI Requirements & Details
+                            </label>
+                            <span className="font-mono text-[11px] text-ink-soft">
+                                {description.length} chars
+                            </span>
                         </div>
-                        
+
                         <Textarea
-                            onChange={(event) => setDescription(event?.target.value)}
-                            className='min-h-[120px] bg-gray-50 border-gray-200 focus:bg-white transition-colors resize-none'
-                            placeholder='Describe your wireframe... What type of website or application is this? What features should be included? Any specific styling preferences?'
                             value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            placeholder="Example: Modern SaaS pricing table with 3 tiers (Starter, Pro, Enterprise). Include a toggle for monthly/annual billing, highlighted Pro card with popular badge, checkmark feature list, and prominent Call to Action buttons with Tailwind hover transitions."
+                            className="min-h-[140px] bg-white border-hairline resize-none text-sm leading-relaxed focus:ring-accent"
                         />
-                        <div className="mt-2 flex justify-between items-center text-sm text-gray-500">
-                            <span>Be specific to get better results</span>
-                            <span>{description?.length || 0} characters</span>
-                        </div>
+                        <p className="text-[11px] text-ink-soft">
+                            💡 Tip: High-detail descriptions guarantee high-quality layout synthesis even if vision analysis drops upstream.
+                        </p>
                     </div>
+
+                    {/* Submit Button */}
+                    <Button 
+                        onClick={OnConverToCodeButtonClick} 
+                        disabled={loading || !file || !model || !description.trim()}
+                        className="w-full py-6 bg-ink hover:bg-accent text-paper font-mono text-sm font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-md gap-3"
+                    >
+                        {loading ? (
+                            <>
+                                <Loader2Icon className="w-5 h-5 animate-spin" />
+                                <span>Uploading & Initializing...</span>
+                            </>
+                        ) : (
+                            <>
+                                <WandSparkles className="w-5 h-5" />
+                                <span>Generate React Code</span>
+                                <ArrowRight className="w-4 h-4 ml-auto" />
+                            </>
+                        )}
+                    </Button>
                 </div>
             </div>
-
-            {/* Generate Button */}
-            <div className="flex justify-center pt-8">
-                <Button 
-                    onClick={OnConverToCodeButtonClick} 
-                    disabled={loading || !file || !model || !description}
-                    className="group relative px-12 py-4 bg-ink hover:bg-accent text-paper font-semibold text-lg rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    {loading ? (
-                        <div className="flex items-center gap-3">
-                            <Loader2Icon className="w-6 h-6 animate-spin" />
-                            <span>Generating Code...</span>
-                        </div>
-                    ) : (
-                        <div className="flex items-center gap-3">
-                            <WandSparkles className="w-6 h-6 group-hover:rotate-12 transition-transform" />
-                            <span>Generate Code</span>
-                            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                        </div>
-                    )}
-                </Button>
-            </div>
-
-            {/* Help Text */}
-            {!loading && (!file || !model || !description) && (
-                <div className="text-center">
-                    <p className="text-gray-500">
-                        {!file ? "Start by uploading your wireframe image" :
-                         !model ? "Select an AI model for code generation" :
-                         !description ? "Add a description to complete the setup" : ""}
-                    </p>
-                </div>
-            )}
         </div>
-    )
+    );
 }
 
-export default ImageUpload
+export default ImageUpload;

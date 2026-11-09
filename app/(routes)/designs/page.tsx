@@ -4,12 +4,12 @@ import axios from 'axios';
 import React, { useEffect, useState } from 'react'
 import DesignCard from './_components/DesignCard';
 import { RECORD } from '@/app/view-code/[uid]/page';
-import { Sparkles, Palette, Search, Filter, Grid, List } from 'lucide-react'
+import { Sparkles, Search, Grid, List, Plus, Layers, AlertCircle } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 
 function Designs() {
-
     const { user } = useAuthContext();
     const [wireframeList, setWireframeList] = useState<RECORD[]>([]);
     const [filteredList, setFilteredList] = useState<RECORD[]>([]);
@@ -18,7 +18,9 @@ function Designs() {
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
     useEffect(() => {
-        user && GetAllUserWireframe();
+        if (user) {
+            GetAllUserWireframe();
+        }
     }, [user])
 
     useEffect(() => {
@@ -36,10 +38,7 @@ function Designs() {
     const GetAllUserWireframe = async () => {
         setLoading(true);
         try {
-            const result = await axios.get('/api/wireframe-to-code?email=' + user?.email);
-            console.log('API Response:', result.data);
-            
-            // Extract the data array from the API response and ensure it's an array
+            const result = await axios.get('/api/wireframe-to-code');
             let wireframes: RECORD[] = [];
             if (result.data?.success && Array.isArray(result.data?.data)) {
                 wireframes = result.data.data;
@@ -48,166 +47,117 @@ function Designs() {
             } else if (Array.isArray(result.data)) {
                 wireframes = result.data;
             }
-            
-            console.log('Processed wireframes:', wireframes);
             setWireframeList(wireframes);
             setFilteredList(wireframes);
         } catch (error) {
             console.error('Error fetching wireframes:', error);
-            // Set empty arrays on error
             setWireframeList([]);
             setFilteredList([]);
         } finally {
             setLoading(false);
         }
-    }
-
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-paper">
-                {/* Loading Header */}
-                <div className="border-b border-hairline bg-paper">
-                    <div className="absolute inset-0 bg-accent/5"></div>
-                    <div className="relative max-w-7xl mx-auto px-6 py-8 sm:px-8">
-                        <div className="animate-pulse">
-                            <div className="h-8 bg-gray-200 rounded-lg w-64 mb-4"></div>
-                            <div className="h-4 bg-gray-200 rounded-lg w-96"></div>
-                        </div>
-                    </div>
-                </div>
-                
-                {/* Loading Content */}
-                <div className="max-w-7xl mx-auto px-6 py-8 sm:px-8">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {[...Array(6)].map((_, index) => (
-                            <div key={index} className="animate-pulse bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-                                <div className="h-48 bg-gray-200"></div>
-                                <div className="p-6">
-                                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-        );
-    }
+    };
 
     return (
-        <div className="min-h-screen bg-paper">
-            {/* Enhanced Header Section */}
+        <div className="min-h-screen bg-paper pb-16">
+            {/* Header Section */}
             <div className="border-b border-hairline bg-paper">
                 <div className="max-w-7xl mx-auto px-6 py-8 sm:px-8">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <div>
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="p-2 bg-ink rounded-md">
-                                    <Palette className="w-6 h-6 text-paper" />
-                                </div>
-                                <div>
-                                    <h1 className="font-display text-3xl md:text-4xl font-semibold text-ink tracking-tight">
-                                        My Designs
-                                    </h1>
-                                    <p className="text-lg text-ink-soft mt-1">
-                                        Every generation, saved and searchable
-                                    </p>
-                                </div>
+                            <div className="flex items-center gap-2 mb-1">
+                                <span className="font-mono text-xs text-accent uppercase font-bold tracking-wider">PROJECT ARCHIVE</span>
+                                <span className="px-2 py-0.5 rounded-full bg-paper-deep text-ink-soft text-[10px] font-mono">
+                                    {filteredList.length} {filteredList.length === 1 ? 'project' : 'projects'}
+                                </span>
                             </div>
-                            
-                            {/* Stats */}
-                            <div className="flex items-center gap-6">
-                                <div className="flex items-center gap-2 px-3 py-1 bg-paper-deep border border-hairline rounded-full">
-                                    <Sparkles className="w-4 h-4 text-accent" />
-                                    <span className="font-mono text-xs font-medium text-ink">
-                                        {Array.isArray(wireframeList) ? wireframeList.length : 0} Design{Array.isArray(wireframeList) && wireframeList.length !== 1 ? 's' : ''}
-                                    </span>
-                                </div>
-                            </div>
+                            <h1 className="font-display text-3xl sm:text-4xl font-semibold tracking-tight text-ink">
+                                My Designs
+                            </h1>
+                            <p className="text-sm text-ink-soft mt-1">
+                                Revisit, preview, edit, and export your previous interface generations.
+                            </p>
                         </div>
-                        
-                        {/* View Toggle */}
-                        <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
-                            <Button
-                                variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                                size="sm"
+
+                        <Link href="/dashboard">
+                            <Button className="bg-ink hover:bg-accent text-paper font-mono text-xs gap-2 px-5 py-2.5 rounded-md shadow-sm">
+                                <Plus className="w-4 h-4" />
+                                <span>New Wireframe</span>
+                            </Button>
+                        </Link>
+                    </div>
+
+                    {/* Search and Filter Controls */}
+                    <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div className="relative w-full sm:w-80">
+                            <Search className="w-4 h-4 text-ink-soft absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <Input
+                                placeholder="Filter projects by keyword..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="pl-9 bg-white border-hairline text-sm rounded-md focus:ring-accent"
+                            />
+                        </div>
+
+                        <div className="flex items-center gap-2 self-end sm:self-auto bg-paper-deep p-1 rounded-md border border-hairline">
+                            <button
                                 onClick={() => setViewMode('grid')}
-                                className="px-3"
+                                className={`p-1.5 rounded transition-colors ${viewMode === 'grid' ? 'bg-white text-ink shadow-xs' : 'text-ink-soft hover:text-ink'}`}
+                                aria-label="Grid view"
                             >
                                 <Grid className="w-4 h-4" />
-                            </Button>
-                            <Button
-                                variant={viewMode === 'list' ? 'default' : 'ghost'}
-                                size="sm"
+                            </button>
+                            <button
                                 onClick={() => setViewMode('list')}
-                                className="px-3"
+                                className={`p-1.5 rounded transition-colors ${viewMode === 'list' ? 'bg-white text-ink shadow-xs' : 'text-ink-soft hover:text-ink'}`}
+                                aria-label="List view"
                             >
                                 <List className="w-4 h-4" />
-                            </Button>
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Main Content */}
+            {/* Main Content Area */}
             <div className="max-w-7xl mx-auto px-6 py-8 sm:px-8">
-                {/* Search and Filters */}
-                <div className="mb-8">
-                    <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-                        <div className="relative flex-1 max-w-md">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                            <Input
-                                placeholder="Search designs by description or model..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-10 bg-card border-hairline focus:border-accent focus:ring-accent"
-                            />
-                        </div>
-                        
-                        <div className="flex items-center gap-3">
-                            <Button variant="outline" size="sm" className="border-gray-200">
-                                <Filter className="w-4 h-4 mr-2" />
-                                Filters
-                            </Button>
-                        </div>
+                {loading ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {[1, 2, 3].map((i) => (
+                            <div key={i} className="border border-hairline rounded-lg p-5 bg-card space-y-4 animate-pulse">
+                                <div className="h-44 bg-gray-200 rounded-md"></div>
+                                <div className="h-5 bg-gray-200 rounded w-3/4"></div>
+                                <div className="h-3 bg-gray-100 rounded w-1/2"></div>
+                            </div>
+                        ))}
                     </div>
-                </div>
-
-                {/* Results */}
-                {!Array.isArray(filteredList) || filteredList.length === 0 ? (
-                    <div className="text-center py-16">
-                        <div className="w-24 h-24 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <Palette className="w-12 h-12 text-gray-400" />
-                        </div>
-                        <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                            {searchTerm ? 'No designs found' : 'No designs yet'}
-                        </h3>
-                        <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                            {searchTerm 
-                                ? 'Try adjusting your search terms or filters' 
-                                : 'Start creating your first wireframe design to see it here'
-                            }
-                        </p>
-                        {!searchTerm && (
-                            <Button variant="gradient">
-                                Create New Design
-                            </Button>
-                        )}
+                ) : filteredList.length > 0 ? (
+                    <div className={viewMode === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-4"}>
+                        {filteredList.map((item: RECORD) => (
+                            <DesignCard key={item.id} item={item} viewMode={viewMode} />
+                        ))}
                     </div>
                 ) : (
-                    <div className={`grid gap-6 ${
-                        viewMode === 'grid' 
-                            ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
-                            : 'grid-cols-1'
-                    }`}>
-                        {Array.isArray(filteredList) && filteredList.length > 0 && filteredList.map((item: RECORD, index) => (
-                            <DesignCard key={item?.uid || index} item={item} viewMode={viewMode} />
-                        ))}
+                    <div className="text-center py-20 border border-dashed border-hairline rounded-xl bg-card max-w-xl mx-auto p-8 space-y-4">
+                        <div className="w-12 h-12 bg-paper-deep text-ink-soft rounded-full flex items-center justify-center mx-auto">
+                            <Layers className="w-6 h-6" />
+                        </div>
+                        <h3 className="font-display text-xl font-semibold text-ink">No Designs Found</h3>
+                        <p className="text-sm text-ink-soft max-w-sm mx-auto">
+                            {searchTerm 
+                                ? `No projects match "${searchTerm}". Try a different search keyword.` 
+                                : "You haven't generated any wireframes yet. Upload your first sketch to get started!"}
+                        </p>
+                        <Link href="/dashboard">
+                            <Button className="mt-2 bg-ink hover:bg-accent text-paper font-mono text-xs">
+                                Create New Wireframe
+                            </Button>
+                        </Link>
                     </div>
                 )}
             </div>
         </div>
-    )
+    );
 }
 
-export default Designs
+export default Designs;

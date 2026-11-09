@@ -35,10 +35,7 @@ function DashboardProvider({
         if (!user) return;
         
         try {
-            const result = await axios.post('/api/user', {
-                userName: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
-                userEmail: user.email
-            });
+            const result = await axios.post('/api/user');
             console.log('User check result:', result.data);
         } catch (error) {
             console.error('Error checking user:', error);

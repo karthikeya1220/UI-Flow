@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: false,
   images: {
     domains: [
-      'wdzlvxpugvcinfqizleu.supabase.co' // Your Supabase project domain
+      'jwphfqkxlkrdnzozrjoe.supabase.co' // Your Supabase project domain
     ]
   }
 };

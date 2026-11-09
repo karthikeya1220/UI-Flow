@@ -40,19 +40,65 @@ export default {
 
     AiModelList: [
         {
+            name: 'OpenRouter Free (Default)',
+            icon: '/google.png',
+            modelName: 'openrouter/free',
+            provider: 'openrouter',
+            badge: 'Free Cloud',
+            description: 'Automatic free cloud routing (Zero credits required)',
+            isDefault: true,
+            isUserFacing: true
+        },
+        {
+            name: 'Llama 3.2 (Local Optional)',
+            icon: '/meta.png',
+            modelName: 'llama3.2:3b',
+            provider: 'ollama',
+            badge: 'Local Ollama',
+            description: 'Optional local offline model (Ollama required)',
+            isDefault: false,
+            isUserFacing: true
+        },
+        // Aliases for backward-compatibility with existing Neon projects and test suites
+        {
+            name: 'OpenRouter Free',
+            icon: '/google.png',
+            modelName: 'openrouter/free',
+            provider: 'openrouter',
+            badge: 'Free Cloud',
+            isUserFacing: false
+        },
+        {
+            name: 'Qwen 3 (Local)',
+            icon: '/deepseek.png',
+            modelName: 'qwen3:8b',
+            provider: 'ollama',
+            badge: 'Local Ollama',
+            isUserFacing: false
+        },
+        {
             name: 'Gemini Google',
             icon: '/google.png',
-            modelName: 'google/gemini-2.0-flash-001'
+            modelName: 'google/gemini-2.5-flash',
+            provider: 'openrouter',
+            badge: 'Free Cloud',
+            isUserFacing: false
         },
         {
             name: 'llama By Meta',
             icon: '/meta.png',
-            modelName: 'google/gemini-2.0-flash-001'
+            modelName: 'meta-llama/llama-3.3-70b-instruct',
+            provider: 'openrouter',
+            badge: 'Cloud',
+            isUserFacing: false
         },
         {
             name: 'Deepkseek',
             icon: '/deepseek.png',
-            modelName: 'qwen/qwen-turbo'
+            modelName: 'deepseek/deepseek-chat',
+            provider: 'openrouter',
+            badge: 'Cloud',
+            isUserFacing: false
         }
     ],
     DEPENDANCY: {
